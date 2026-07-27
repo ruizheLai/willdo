@@ -1,2 +1,5 @@
-# willdo
-An AI-powered capture app that helps users quickly save thoughts, tasks, and ideas to deal with later.
+# WillDo
+
+WillDo is a capture-first AI reminder inbox for things users cannot deal with now but do not want to forget later.
+
+It helps users quickly capture screenshots, text, or voice notes, then turns them into editable reminder cards.
