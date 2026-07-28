@@ -1,27 +1,35 @@
 # WillDo — Data Schema
 
-> Status: Draft v0.1  
-> Purpose: This document defines the core data models used by WillDo.  
-> It acts as the shared contract between capture, AI extraction, review, local persistence, reminders, and future cloud storage.
+> Status: Draft v0.2  
+> Purpose: This document defines the core domain data models used by WillDo.
 >
-> The schema should remain intentionally small during the MVP.  
-> New fields should only be added when they support a validated product need.
+> It acts as the shared contract between Capture, AI extraction, Review, persistence, reminders, and future cloud infrastructure.
+>
+> This document defines the **product domain model**, not the physical SQLite database schema.
+>
+> The schema should remain intentionally small during the MVP. New persistent fields should only be added when they support a validated product need.
 
 ---
 
-## 1. Data Model Principles
+# 1. Data Model Principles
 
-WillDo separates the user journey into three data stages:
+WillDo separates the Future Action lifecycle into three primary data stages:
 
 ```text
-Capture Input
-→ AI Extraction Result
-→ Confirmed Reminder Card
+CaptureInput
+↓
+ExtractionResult
+↓
+ReminderCard
 ```
 
-These stages should not be treated as the same object.
+These are intentionally different objects.
 
-### Capture Input
+They should not be merged for implementation convenience.
+
+---
+
+## 1.1 CaptureInput
 
 Temporary raw information supplied by the user.
 
@@ -33,35 +41,119 @@ Examples:
 - photo
 - voice transcript
 
-Raw image and voice data should not be retained by default after the capture workflow is completed.
-
-### Extraction Result
-
-A temporary AI interpretation of the capture.
-
-It may contain:
-
-- extracted fields
-- suggestions
-- uncertainty
-- missing information
-- clarification prompts
-
-The user can edit this information before confirmation.
-
-### Reminder Card
-
-The confirmed, persistent representation of a Future Action.
-
-Only confirmed Reminder Cards should become part of the user's Inbox and reminder system.
+Raw images and audio should not become persistent product data by default.
 
 ---
 
-## 2. Core Types
+## 1.2 ExtractionResult
 
-### 2.1 Capture Source Type
+A temporary AI interpretation of the Capture.
 
-Describes how the user captured the information.
+It may contain:
+
+- proposed structured fields
+- suggestions
+- uncertainty
+- missing information
+- clarification requirements
+
+The user may edit this information before confirmation.
+
+---
+
+## 1.3 ReminderCard
+
+The confirmed persistent representation of a Future Action.
+
+Only after user confirmation should information enter the long-term Reminder Card model.
+
+The product record is:
+
+```text
+Future Action
+```
+
+not:
+
+```text
+Original screenshot
+Original voice recording
+Raw AI response
+```
+
+---
+
+# 2. Domain Model vs Persistence Model
+
+The types in this document represent WillDo's domain model.
+
+They should remain independent of the underlying persistence technology.
+
+Current MVP architecture:
+
+```text
+Application
+↓
+CardRepository
+↓
+SQLiteCardRepository
+↓
+expo-sqlite
+```
+
+This means:
+
+```text
+ReminderCard
+```
+
+is not necessarily identical to:
+
+```text
+SQLite row
+```
+
+The repository implementation is responsible for translating between them where necessary.
+
+---
+
+## 2.1 Domain Model
+
+Describes what the product means.
+
+Examples:
+
+```text
+ReminderCard
+ReminderSchedule
+CaptureInput
+ExtractionResult
+```
+
+---
+
+## 2.2 Persistence Model
+
+Describes how the data is physically stored.
+
+Examples may include:
+
+```text
+SQLite tables
+columns
+foreign keys
+serialized fields
+indexes
+database migrations
+```
+
+Persistence details should not leak into UI components or redefine product meaning.
+
+---
+
+# 3. Capture Source Type
+
+Describes how the user originally captured the information.
 
 ```ts
 export type CaptureSourceType =
@@ -70,17 +162,31 @@ export type CaptureSourceType =
   | "voice";
 ```
 
-This describes the capture method only.
+This describes the Capture method only.
 
-It should not affect how the resulting Reminder Card behaves.
+It should not create separate Future Action models.
+
+All Capture types eventually enter the same:
+
+```text
+Extraction
+→ Review
+→ ReminderCard
+```
+
+flow.
 
 ---
 
-### 2.2 Reminder Category
+# 4. Reminder Category
 
-Categories are lightweight labels used primarily for presentation and filtering.
+Categories are lightweight labels used primarily for:
 
-They should not become a complex organisational system.
+- presentation
+- AI interpretation
+- future simple filtering
+
+They should not become separate management systems.
 
 ```ts
 export type ReminderCategory =
@@ -93,7 +199,9 @@ export type ReminderCategory =
   | "general";
 ```
 
-#### Category intent
+---
+
+## 4.1 Category Intent
 
 | Category | Example |
 | --- | --- |
@@ -105,17 +213,40 @@ export type ReminderCategory =
 | `follow_up` | Contact property manager again next Wednesday |
 | `general` | Call insurance tomorrow |
 
-Categories should normally be suggested by AI rather than manually chosen during capture.
+Categories should normally be suggested by AI rather than manually required before Capture.
 
-The category must remain editable.
+Categories remain editable.
 
 ---
 
-### 2.3 Temporal Kind
+## 4.2 Category Rule
+
+Categories must not create separate domain systems such as:
+
+```text
+Bill
+Warranty
+Return
+Appointment
+```
+
+with completely different product architectures.
+
+They remain variations of:
+
+```text
+ReminderCard
+```
+
+unless later user evidence justifies a different design.
+
+---
+
+# 5. Temporal Kind
 
 Different Future Actions use dates differently.
 
-An appointment is not the same as a deadline, even if both contain a date.
+An appointment time and a deadline may contain similar timestamps but represent different meanings.
 
 ```ts
 export type TemporalKind =
@@ -126,31 +257,67 @@ export type TemporalKind =
   | "none";
 ```
 
-Examples:
+---
+
+## `event`
+
+Something happens at the target time.
+
+Example:
 
 ```text
-Dentist at 3 PM
-→ event
-
-Return before August 12
-→ deadline
-
-Contact landlord again next Wednesday
-→ follow_up
-
-Warranty began August 2026
-→ reference
+Dentist appointment at 3:30 PM
 ```
-
-`reference` represents a date that provides useful context but is not itself necessarily the action time.
 
 ---
 
-### 2.4 Time Precision
+## `deadline`
 
-AI may know a date without knowing an exact time.
+Something should happen by the target time.
 
-WillDo must not invent precision that does not exist in the source.
+Example:
+
+```text
+Return headphones before August 20
+```
+
+---
+
+## `follow_up`
+
+The user should revisit something around the target time.
+
+Example:
+
+```text
+Contact landlord again next Wednesday
+```
+
+---
+
+## `reference`
+
+A date provides useful supporting context but is not necessarily itself the action time.
+
+Example:
+
+```text
+Purchased laptop on August 12
+```
+
+when the Future Action concerns warranty information.
+
+---
+
+## `none`
+
+No meaningful target time is known.
+
+---
+
+# 6. Time Precision
+
+WillDo must preserve the difference between an exact time and incomplete temporal information.
 
 ```ts
 export type TimePrecision =
@@ -172,13 +339,15 @@ August 12
 Around the end of August
 → approximate
 
-Sometime next month
-→ approximate
+No useful date detected
+→ unknown
 ```
+
+WillDo must not invent precision that does not exist in the source.
 
 ---
 
-### 2.5 Reminder Card Status
+# 7. Reminder Card Status
 
 ```ts
 export type ReminderCardStatus =
@@ -187,25 +356,45 @@ export type ReminderCardStatus =
   | "archived";
 ```
 
-#### Active
+---
 
-The Future Action is still relevant.
+## `active`
 
-#### Done
-
-The user has completed or resolved the action.
-
-#### Archived
-
-The card is retained but no longer part of the active Inbox.
-
-Draft state should normally exist during the review flow rather than as a persisted Reminder Card.
+The Future Action still requires attention.
 
 ---
 
-## 3. Capture Input
+## `done`
 
-Capture Input represents temporary user-provided information before AI processing.
+The user has resolved or completed the Future Action.
+
+---
+
+## `archived`
+
+The card is retained but is no longer part of the active Inbox.
+
+---
+
+## Draft State
+
+`draft` should not normally be a persisted Reminder Card status.
+
+Draft behaviour belongs to:
+
+```text
+Capture
+Extraction
+Review
+```
+
+before confirmation.
+
+---
+
+# 8. CaptureInput
+
+`CaptureInput` represents temporary user-provided information before structured extraction.
 
 ```ts
 export type CaptureInput = {
@@ -223,11 +412,15 @@ export type CaptureInput = {
 };
 ```
 
-### 3.1 Capture Input Rules
+---
 
-At least one content field must exist according to `sourceType`.
+# 9. CaptureInput Rules
 
-#### Text
+At least one relevant content field should exist according to `sourceType`.
+
+---
+
+## Text
 
 ```ts
 {
@@ -236,7 +429,9 @@ At least one content field must exist according to `sourceType`.
 }
 ```
 
-#### Image
+---
+
+## Image
 
 ```ts
 {
@@ -245,31 +440,85 @@ At least one content field must exist according to `sourceType`.
 }
 ```
 
-#### Voice
+`imageUri` represents temporary access to the Capture source.
+
+It should not be assumed to remain valid permanently.
+
+---
+
+## Voice
 
 ```ts
 {
   sourceType: "voice",
   voiceTranscript:
-    "Contact the property manager next Wednesday if they have not replied"
+    "Contact the property manager next Wednesday if they haven't replied"
 }
 ```
 
-Raw capture input is temporary.
-
-The application should not depend on retaining:
-
-- original screenshots
-- photos
-- audio recordings
-
-after the user confirms or abandons the capture.
+Raw audio itself is not required in the domain model.
 
 ---
 
-## 4. Reminder Card Draft
+# 10. Capture Lifecycle
 
-AI extraction should produce a draft representation before confirmation.
+Raw Capture content should normally be temporary.
+
+The application should not rely on retaining:
+
+- original screenshots
+- photos
+- raw audio recordings
+- intermediate model prompts
+- raw model responses
+
+after they are no longer required.
+
+Conceptually:
+
+```text
+Capture
+↓
+Extract
+↓
+Review
+↓
+Confirm or Cancel
+↓
+Discard unnecessary raw input
+```
+
+---
+
+# 11. Money Amount
+
+Financial information is optional.
+
+It should only be stored when it contributes to the Future Action.
+
+```ts
+export type MoneyAmount = {
+  value: number;
+  currency: string;
+};
+```
+
+Example:
+
+```ts
+{
+  value: 86.40,
+  currency: "AUD"
+}
+```
+
+WillDo should not evolve into an expense tracker simply because amounts can be extracted.
+
+---
+
+# 12. ReminderCardDraft
+
+AI extraction produces a temporary proposed Future Action.
 
 ```ts
 export type ReminderCardDraft = {
@@ -280,6 +529,7 @@ export type ReminderCardDraft = {
   temporalKind: TemporalKind;
 
   targetAt?: string | null;
+
   timePrecision: TimePrecision;
 
   timezone?: string | null;
@@ -298,55 +548,63 @@ export type ReminderCardDraft = {
 };
 ```
 
-The draft does not contain persistent identifiers or lifecycle metadata.
+A draft does not contain persistent lifecycle metadata such as:
 
-Those are created only after confirmation.
+```text
+id
+status
+createdAt
+completedAt
+```
+
+Those belong to the confirmed Reminder Card.
 
 ---
 
-## 5. Money Amount
+# 13. Extracted Facts vs Suggestions
 
-Financial information is optional and should only be stored when relevant to the Future Action.
+The domain should preserve the conceptual difference between:
 
-```ts
-export type MoneyAmount = {
-  value: number;
-  currency: string;
-};
+```text
+information supported by the source
+```
+
+and:
+
+```text
+information suggested by WillDo
 ```
 
 Example:
 
-```ts
-{
-  value: 86.40,
-  currency: "AUD"
-}
+```text
+Source:
+Return deadline August 20
+
+Extracted:
+targetAt = August 20
+
+Suggested:
+remind August 18
 ```
 
-WillDo should not attempt to become an expense tracker or financial-management system.
+Therefore:
 
-Amount exists only when it helps the user understand the Future Action.
+```text
+targetAt
+```
+
+and:
+
+```text
+suggestedReminderAt
+```
+
+represent different concepts.
 
 ---
 
-## 6. Extraction Result
-
-The AI response should include both the proposed card and information about uncertainty.
-
-```ts
-export type ExtractionResult = {
-  draft: ReminderCardDraft;
-
-  confidence: AIConfidence;
-
-  uncertainFields: ExtractionUncertainty[];
-
-  clarificationQuestion?: string | null;
-};
-```
-
-### 6.1 AI Confidence
+# 14. AI Confidence
 
 ```ts
 export type AIConfidence =
@@ -355,30 +613,20 @@ export type AIConfidence =
   | "low";
 ```
 
-Overall confidence is primarily useful during:
+Overall confidence may be useful for:
 
 - development
-- testing
-- review UX
-- AI evaluation
+- evaluation
+- uncertainty UX
+- AI quality measurement
 
-It should not necessarily be shown prominently to users.
+It does not necessarily need to be prominently visible to users.
 
 ---
 
-### 6.2 Field-Level Uncertainty
+# 15. Reminder Draft Field
 
-```ts
-export type ExtractionUncertainty = {
-  field: ReminderDraftField;
-
-  reason: string;
-
-  alternatives?: string[];
-};
-```
-
-Possible fields:
+Fields that may be identified as uncertain:
 
 ```ts
 export type ReminderDraftField =
@@ -393,12 +641,26 @@ export type ReminderDraftField =
   | "contactOrProvider";
 ```
 
+---
+
+# 16. Extraction Uncertainty
+
+```ts
+export type ExtractionUncertainty = {
+  field: ReminderDraftField;
+
+  reason: string;
+
+  alternatives?: string[];
+};
+```
+
 Example:
 
 ```ts
 {
   field: "targetAt",
-  reason: "Two dates were detected in the screenshot.",
+  reason: "Two relevant dates were detected.",
   alternatives: [
     "2026-08-12",
     "2026-08-15"
@@ -406,13 +668,118 @@ Example:
 }
 ```
 
-WillDo should prefer uncertainty over guessing.
+WillDo should prefer uncertainty over unsupported guessing.
 
 ---
 
-## 7. Confirmed Reminder Card
+# 17. ExtractionResult
 
-A Reminder Card is created after the user reviews and confirms the extracted information.
+The AI extraction layer returns:
+
+```ts
+export type ExtractionResult = {
+  draft: ReminderCardDraft;
+
+  confidence: AIConfidence;
+
+  uncertainFields: ExtractionUncertainty[];
+
+  clarificationQuestion?: string | null;
+};
+```
+
+`ExtractionResult` is temporary.
+
+It should normally exist only during:
+
+```text
+Extraction
+→ Review
+```
+
+until the user either:
+
+```text
+Confirms
+or
+Cancels
+```
+
+---
+
+# 18. Runtime Validation
+
+TypeScript types describe the application's expected data shape but do not guarantee that external runtime data is valid.
+
+External data should be validated before becoming a trusted domain object.
+
+The current validation direction uses:
+
+```text
+Zod
+```
+
+for important trust boundaries.
+
+Example:
+
+```text
+AI / Backend Response
+↓
+Zod validation
+↓
+ExtractionResult
+↓
+Review
+```
+
+---
+
+## 18.1 Zod Is Not the Domain Model
+
+The canonical product concepts remain the domain types defined in this document.
+
+Zod schemas are runtime validation tools.
+
+Do not allow:
+
+```text
+validation implementation
+```
+
+to redefine:
+
+```text
+product semantics
+```
+
+without an explicit schema decision.
+
+---
+
+## 18.2 Initial Validation Priority
+
+The highest-priority runtime validation target is:
+
+```text
+ExtractionResult
+```
+
+because AI and backend responses are external data.
+
+Future validation may also apply to:
+
+- migrated persisted data
+- cloud API responses
+- imported data
+
+where necessary.
+
+---
+
+# 19. Confirmed ReminderCard
+
+After Review and confirmation, WillDo creates a persistent Reminder Card.
 
 ```ts
 export type ReminderCard = {
@@ -429,6 +796,7 @@ export type ReminderCard = {
   temporalKind: TemporalKind;
 
   targetAt?: string | null;
+
   timePrecision: TimePrecision;
 
   timezone?: string | null;
@@ -448,9 +816,11 @@ export type ReminderCard = {
   status: ReminderCardStatus;
 
   createdAt: string;
+
   updatedAt: string;
 
   completedAt?: string | null;
+
   archivedAt?: string | null;
 
   deletedAt?: string | null;
@@ -459,39 +829,45 @@ export type ReminderCard = {
 
 ---
 
-## 8. Core Reminder Card Fields
+# 20. ReminderCard Field Semantics
 
-### `id`
+## `id`
 
-Unique identifier for the card.
+Unique WillDo identifier for the Reminder Card.
 
-Use a UUID-compatible identifier so the model can migrate to cloud storage later without changing ID semantics.
+Use UUID-compatible identifiers.
+
+The ID should remain valid independently of:
+
+- SQLite row identifiers
+- native notification IDs
+- future cloud database IDs where possible
 
 ---
 
-### `userId`
+## `userId`
 
 ```ts
 userId?: string | null;
 ```
 
-The local-first MVP does not require an account.
+The local-first MVP does not require authentication.
 
-For the MVP:
+For the initial MVP:
 
-```ts
+```text
 userId = null
 ```
 
-This field exists so future cloud-backed cards can be associated with authenticated users.
+The application must not assume an authenticated user exists.
 
-The application must not assume that `userId` exists.
+This field preserves future compatibility without requiring account infrastructure today.
 
 ---
 
-### `title`
+## `title`
 
-Short human-readable description of the Future Action.
+A short human-readable description of the Future Action.
 
 Good:
 
@@ -502,32 +878,30 @@ Cancel gym membership
 Bad:
 
 ```text
-Gym membership information screenshot from July
+Gym screenshot from July
 ```
 
-The title should describe what requires attention.
+The title should describe what requires future attention.
 
 ---
 
-### `category`
+## `category`
 
-A lightweight classification.
+A lightweight label.
 
-Category should support:
+It may support:
 
-- visual recognition
+- recognition
 - simple filtering
-- AI understanding
+- AI interpretation
 
-It should not determine complex application behaviour.
+It should not determine large independent workflows.
 
 ---
 
-### `sourceType`
+## `sourceType`
 
-Records how the Future Action originally entered WillDo.
-
-Examples:
+Records how the Future Action originally entered WillDo:
 
 ```text
 text
@@ -535,13 +909,29 @@ image
 voice
 ```
 
-This may later help evaluate which capture methods provide the most value.
+This may later help evaluate which Capture methods create the most value.
 
 ---
 
-### `targetAt`
+## `temporalKind`
 
-The primary date or date-time associated with the Future Action.
+Describes what `targetAt` means.
+
+Example:
+
+```text
+event
+deadline
+follow_up
+reference
+none
+```
+
+---
+
+## `targetAt`
+
+The primary temporal point associated with the Future Action.
 
 Examples:
 
@@ -552,37 +942,41 @@ Dentist appointment:
 Return deadline:
 2026-08-20
 
-Follow up:
+Follow-up:
 2026-08-14
 ```
 
-The meaning of `targetAt` is determined by `temporalKind`.
+The meaning of this value depends on:
+
+```text
+temporalKind
+```
+
+It is not the notification time.
 
 ---
 
-### `timePrecision`
+## `timePrecision`
 
-Indicates how confidently the source defines time.
+Describes the precision of the known target time.
 
-This allows WillDo to distinguish:
+This prevents the system from treating:
 
 ```text
 August 12
 ```
 
-from:
+as equivalent to:
 
 ```text
-August 12 at 3:30 PM
+August 12 at 9:00 AM
 ```
-
-without inventing an arbitrary time.
 
 ---
 
-### `timezone`
+## `timezone`
 
-Where an exact time exists, timezone should be preserved.
+Where exact time matters, timezone should be preserved.
 
 Example:
 
@@ -590,18 +984,20 @@ Example:
 Australia/Melbourne
 ```
 
-The user's current device timezone may be used when the source does not specify a timezone, but the application should clearly separate:
+The device timezone may be used as a working default when the source does not provide one.
 
-- extracted timezone
-- device-assumed timezone
+Any later distinction between:
 
-if this becomes important later.
+```text
+extracted timezone
+device-assumed timezone
+```
 
-For the MVP, the current device timezone may be used as the default.
+should be added only if product needs justify it.
 
 ---
 
-### `nextAction`
+## `nextAction`
 
 A concise description of what the user should do.
 
@@ -617,45 +1013,74 @@ or:
 Attend dentist appointment.
 ```
 
-The title and next action may be similar.
+The title and `nextAction` may sometimes be similar.
 
-This is acceptable.
-
-The purpose of `nextAction` is to preserve enough context for the reminder to be actionable later.
+That is acceptable.
 
 ---
 
-### `context`
+## `location`
 
-Optional short supporting context.
+Optional location relevant to resolving the Future Action.
 
-Example:
+Do not persist unrelated addresses simply because they appeared in a captured document.
+
+---
+
+## `amount`
+
+Optional money value relevant to the Future Action.
+
+Do not use it as the basis for building a general finance model.
+
+---
+
+## `contactOrProvider`
+
+Optional person or organisation useful to the Future Action.
+
+Examples:
 
 ```text
-Property manager said the plumber would contact me this week.
+Alex
+Property manager
+City Dental Melbourne
+Energy provider
 ```
 
-This should remain concise.
-
-WillDo is not a notes app.
-
 ---
 
-## 9. Reminder Schedule
+## `context`
 
-Reminder timing should be separated conceptually from the date of the Future Action.
+Optional short supporting information that helps the user understand the Future Action later.
 
 Example:
 
 ```text
-Return deadline:
+Property manager said the plumber should contact me this week.
+```
+
+Context should remain concise.
+
+WillDo is not a notes archive.
+
+---
+
+# 21. ReminderSchedule
+
+The time when a Future Action matters is separate from the time when WillDo reminds the user.
+
+Example:
+
+```text
+Deadline
 August 20
 
-Reminder:
+Reminder
 August 18 at 9:00 AM
 ```
 
-These are not the same thing.
+The reminder model is:
 
 ```ts
 export type ReminderSchedule = {
@@ -671,23 +1096,48 @@ export type ReminderSchedule = {
   nativeNotificationId?: string | null;
 
   createdAt: string;
+
   updatedAt: string;
 };
 ```
 
 ---
 
-### 9.1 Reminder Rules
+# 22. Reminder Identity
 
-For the MVP, each Reminder Card supports:
+The WillDo Reminder Schedule ID and native notification ID are different concepts.
 
-**one primary reminder**
+```text
+ReminderSchedule.id
+→ WillDo domain identifier
 
-This keeps the interaction and notification model simple.
+nativeNotificationId
+→ operating-system notification binding
+```
 
-Future versions may support multiple reminders.
+The application must not treat the native notification ID as the business identity of the reminder.
 
-Example future scenario:
+This distinction supports:
+
+- cancelling notifications
+- rescheduling
+- future infrastructure changes
+- future sync
+
+---
+
+# 23. One Primary Reminder in MVP
+
+For MVP v0.1:
+
+```text
+One Reminder Card
+→ One Primary Reminder Schedule
+```
+
+This keeps the initial interaction and notification model simple.
+
+Future versions may support:
 
 ```text
 7 days before
@@ -695,43 +1145,27 @@ Example future scenario:
 2 hours before
 ```
 
-This is intentionally outside the initial schema requirement.
+but multiple reminders are not required for the initial MVP.
 
 ---
 
-### 9.2 `nativeNotificationId`
+# 24. Date and Time Format
 
-The operating system may return an identifier when a notification is scheduled.
+Persistent timestamps should use ISO 8601-compatible strings.
 
-This identifier exists only to support native notification management.
-
-It must not become the identity of the reminder itself.
-
-Example:
-
-```text
-ReminderSchedule.id
-→ WillDo business identifier
-
-nativeNotificationId
-→ device notification identifier
-```
-
-This separation is important for future cloud sync.
-
----
-
-## 10. Dates and Time Format
-
-All persistent timestamps should use ISO 8601 strings.
-
-Example:
+Exact date-time example:
 
 ```text
 2026-08-18T15:30:00+10:00
 ```
 
-System timestamps should include:
+Date-only example:
+
+```text
+2026-08-20
+```
+
+System timestamps include:
 
 ```text
 createdAt
@@ -740,8 +1174,6 @@ completedAt
 archivedAt
 deletedAt
 ```
-
-Whenever the product only knows a calendar date rather than a time, the schema must preserve that distinction.
 
 Do not automatically convert:
 
@@ -755,280 +1187,233 @@ into:
 August 12 at 9:00 AM
 ```
 
-AI extraction and reminder scheduling are separate decisions.
+inside the domain model merely because notifications require a time.
+
+Reminder scheduling is a separate decision.
 
 ---
 
-## 11. Deletion Model
+# 25. Persisted Data
 
-The schema includes:
+The MVP should persist confirmed product state such as:
+
+- Reminder Cards
+- Reminder Schedules
+- Reminder Card status
+- lifecycle timestamps
+
+The current local persistence technology is:
+
+```text
+expo-sqlite
+```
+
+through:
+
+```text
+SQLiteCardRepository
+```
+
+---
+
+# 26. Temporary Data
+
+The following should remain temporary by default:
+
+- uploaded images
+- captured photos
+- raw audio recordings
+- abandoned Capture inputs
+- AI prompts containing Capture content
+- raw AI responses
+- intermediate extraction processing data
+
+Temporary data should be discarded when no longer required.
+
+---
+
+# 27. Deletion Model
+
+The domain includes:
 
 ```ts
 deletedAt?: string | null;
 ```
 
-This allows the storage layer to support soft deletion later.
+to allow future persistence implementations to support soft deletion.
 
-For the local MVP, implementation may permanently remove deleted cards if that is simpler.
+However, the initial local MVP may use hard deletion if that is simpler.
 
-UI code should not depend on whether deletion is implemented as:
-
-- hard delete
-- soft delete
-
-This behaviour belongs to the repository layer.
-
----
-
-## 12. Persisted vs Temporary Data
-
-### Persisted
-
-The MVP may persist:
-
-- confirmed Reminder Cards
-- Reminder Schedules
-- card status
-- timestamps
-
-### Temporary
-
-The MVP should treat the following as temporary by default:
-
-- uploaded images
-- captured photos
-- raw audio
-- intermediate AI prompts
-- AI raw responses
-- abandoned draft captures
-
-Temporary data should be discarded when it is no longer required.
-
----
-
-## 13. Data That Should Not Be Required
-
-The MVP must not require:
-
-- email address
-- bank account information
-- financial account credentials
-- government ID numbers
-- passport information
-- medical records
-- contact-list access
-- complete original documents
-
-Users may still accidentally include sensitive information in captures.
-
-Privacy handling is defined separately in `PRIVACY_RULES.md`.
-
----
-
-## 14. Example — Text Capture
-
-### Input
+UI code must not depend on whether persistence internally uses:
 
 ```text
-Need to cancel my gym membership before August 12.
+Hard delete
+or
+Soft delete
 ```
 
-### Extraction Result
-
-```json
-{
-  "draft": {
-    "title": "Cancel gym membership",
-    "category": "deadline",
-    "temporalKind": "deadline",
-    "targetAt": "2026-08-12",
-    "timePrecision": "date_only",
-    "timezone": "Australia/Melbourne",
-    "nextAction": "Cancel gym membership before renewal",
-    "location": null,
-    "amount": null,
-    "contactOrProvider": "Gym",
-    "context": null,
-    "suggestedReminderAt": "2026-08-10T09:00:00+10:00"
-  },
-  "confidence": "high",
-  "uncertainFields": [],
-  "clarificationQuestion": null
-}
-```
-
-### Confirmed Card
-
-```json
-{
-  "id": "card_uuid",
-  "userId": null,
-  "title": "Cancel gym membership",
-  "category": "deadline",
-  "sourceType": "text",
-  "temporalKind": "deadline",
-  "targetAt": "2026-08-12",
-  "timePrecision": "date_only",
-  "timezone": "Australia/Melbourne",
-  "nextAction": "Cancel gym membership before renewal",
-  "location": null,
-  "amount": null,
-  "contactOrProvider": "Gym",
-  "context": null,
-  "reminder": {
-    "id": "reminder_uuid",
-    "scheduledAt": "2026-08-10T09:00:00+10:00",
-    "status": "scheduled",
-    "nativeNotificationId": null,
-    "createdAt": "2026-07-27T09:00:00+10:00",
-    "updatedAt": "2026-07-27T09:00:00+10:00"
-  },
-  "status": "active",
-  "createdAt": "2026-07-27T09:00:00+10:00",
-  "updatedAt": "2026-07-27T09:00:00+10:00",
-  "completedAt": null,
-  "archivedAt": null,
-  "deletedAt": null
-}
-```
+That behaviour belongs behind the repository boundary.
 
 ---
 
-## 15. Example — Image Capture
+# 28. SQLite Persistence
 
-A user shares an appointment screenshot containing:
+The initial local persistence implementation uses:
 
 ```text
-Appointment confirmed
-Tuesday 18 August
-3:30 PM
-120 Collins Street
+expo-sqlite
 ```
 
-The original screenshot is temporary.
+This is an infrastructure decision rather than a change to the Reminder Card domain model.
 
-The confirmed card may contain:
-
-```json
-{
-  "title": "Appointment",
-  "category": "appointment",
-  "sourceType": "image",
-  "temporalKind": "event",
-  "targetAt": "2026-08-18T15:30:00+10:00",
-  "timePrecision": "exact",
-  "timezone": "Australia/Melbourne",
-  "nextAction": "Attend appointment",
-  "location": "120 Collins Street",
-  "amount": null,
-  "contactOrProvider": null
-}
-```
-
-The original image does not need to remain stored after confirmation.
-
----
-
-## 16. Example — Ambiguous Capture
-
-### Input
+Conceptually:
 
 ```text
-Alex said they might know by Thursday or Friday.
-Message them again if I haven't heard back.
+ReminderCard
+↓
+CardRepository
+↓
+SQLiteCardRepository
+↓
+SQLite representation
 ```
 
-WillDo should not arbitrarily choose Thursday.
+---
 
-Possible extraction:
+# 29. SQLiteCardRepository
 
-```json
-{
-  "draft": {
-    "title": "Follow up with Alex",
-    "category": "follow_up",
-    "temporalKind": "follow_up",
-    "targetAt": null,
-    "timePrecision": "unknown",
-    "timezone": "Australia/Melbourne",
-    "nextAction": "Message Alex if there has been no response",
-    "location": null,
-    "amount": null,
-    "contactOrProvider": "Alex",
-    "context": "Alex expects to know by Thursday or Friday",
-    "suggestedReminderAt": null
-  },
-  "confidence": "medium",
-  "uncertainFields": [
-    {
-      "field": "targetAt",
-      "reason": "The input contains two possible follow-up dates.",
-      "alternatives": [
-        "Thursday",
-        "Friday"
-      ]
-    }
-  ],
-  "clarificationQuestion":
-    "Would you like to follow up on Thursday or Friday?"
-}
+`SQLiteCardRepository` implements:
+
+```ts
+CardRepository
 ```
 
-This is preferable to silently guessing.
+and is responsible for:
+
+- CRUD operations
+- converting database rows into domain objects
+- converting domain objects into persistent representations
+- hiding SQL from UI and feature code
+- future local schema migration handling where required
+
+Feature components should not know:
+
+```text
+table names
+column names
+SQL syntax
+database migration details
+```
 
 ---
 
-## 17. MVP Schema Assumptions
+# 30. SQLite Schema Guidance
 
-The following are deliberate simplifications for MVP v0.1.
+The physical SQLite schema should support the domain model without becoming the source of product meaning.
 
-### One Capture → One Primary Future Action
+An implementation may use tables such as:
 
-The MVP assumes that one capture normally creates one Reminder Card.
+```text
+reminder_cards
+reminder_schedules
+```
 
-If AI detects multiple actions, the MVP may:
+but exact database structure belongs to implementation.
 
-- ask the user which action matters, or
-- select a primary candidate for review
+Do not update the product domain simply because a database representation is inconvenient.
 
-Automatic creation of multiple Reminder Cards from a single capture is outside the initial MVP.
-
-This assumption should be tested.
-
----
-
-### One Card → One Primary Reminder
-
-The MVP supports one primary scheduled reminder per card.
-
-Multiple reminder schedules may be introduced later if testing demonstrates a clear need.
+Prefer adapting the persistence layer.
 
 ---
 
-### Category Is Lightweight
+# 31. SQLite Query Needs
 
-Categories are not intended to form:
+The initial database should support expected product operations such as:
 
-- folders
-- projects
-- nested structures
-- workflows
+```text
+List active cards
+Get card by ID
+Create card
+Update card
+Mark card done
+Delete card
+List completed cards
+Sort cards by relevant date
+```
+
+Later requirements may include:
+
+```text
+Search
+Date-based Inbox grouping
+Filtering
+```
+
+The database should not be over-designed for hypothetical future analytics or enterprise workloads.
 
 ---
 
-### Raw Input Is Not the Product Record
+# 32. SQLite Indexing
 
-The Reminder Card is the persistent product object.
+Indexes should be added when they support demonstrated query needs.
 
-Screenshots, audio, and raw capture information should not become a personal document archive.
+Potential future candidates may include:
+
+```text
+status
+targetAt
+createdAt
+```
+
+Do not create extensive indexing before query patterns exist.
 
 ---
 
-## 18. Repository Contract
+# 33. Database Migrations
 
-UI components must not directly read from or write to device storage.
+The database schema will evolve during development.
 
-All persistent Reminder Card operations should go through a repository interface.
+Local schema changes should eventually use a predictable migration process.
+
+Migration code belongs to the persistence layer.
+
+The domain model should not contain migration-specific fields purely to support database implementation.
+
+Before changing persisted structure, consider:
+
+- existing local data
+- development builds already installed on devices
+- backwards compatibility
+- safe migration
+- whether resetting development data is acceptable at the current phase
+
+MVP development may allow simpler resets early, but this should not become the permanent migration strategy.
+
+---
+
+# 34. No ORM Initially
+
+The initial persistence architecture is:
+
+```text
+expo-sqlite
++
+SQLiteCardRepository
+```
+
+without an ORM.
+
+Do not introduce an ORM merely to mirror the domain model automatically.
+
+If later database complexity justifies one, that should become an explicit technical decision.
+
+---
+
+# 35. CardRepository Contract
+
+UI components must not directly access SQLite.
+
+Persistent Reminder Card operations should use:
 
 ```ts
 export interface CardRepository {
@@ -1053,28 +1438,372 @@ export interface CardRepository {
 }
 ```
 
-The initial implementation may use local device storage.
+---
 
-A future implementation may use:
+# 36. Repository Responsibilities
+
+`CardRepository` defines what the application needs from persistence.
+
+It should not expose:
 
 ```text
-Supabase
-or another cloud persistence layer
+SQL
+SQLite transactions
+Supabase queries
+database rows
+storage keys
 ```
 
-without changing the core UI contract.
+to UI components.
+
+Current:
+
+```text
+CardRepository
+↓
+SQLiteCardRepository
+```
+
+Future possibilities:
+
+```text
+CardRepository
+↓
+Cloud repository
+```
+
+or:
+
+```text
+CardRepository
+↓
+Local + sync implementation
+```
+
+without requiring the core product UI to be rewritten.
 
 ---
 
-## 19. Schema Change Rule
+# 37. Account and Cloud Readiness
 
-Before adding a new persistent field, ask:
+The initial MVP does not require:
+
+```text
+Authentication
+Cloud Reminder Card storage
+Cross-device sync
+```
+
+`userId` remains optional.
+
+Do not introduce cloud-specific data concepts into the domain until the product actually needs them.
+
+Cloud readiness should come primarily from:
+
+- stable IDs
+- repository boundaries
+- predictable timestamps
+- clean domain models
+
+rather than building cloud infrastructure prematurely.
+
+---
+
+# 38. Sensitive Data Boundaries
+
+The Reminder Card model should not require:
+
+- email address
+- bank credentials
+- account numbers
+- payment card numbers
+- passwords
+- government ID numbers
+- passport information
+- complete medical records
+- complete original documents
+
+Users may accidentally include sensitive information in Capture inputs.
+
+The system should minimise what enters persistent Reminder Card data.
+
+See:
+
+```text
+docs/PRIVACY_RULES.md
+```
+
+for detailed handling rules.
+
+---
+
+# 39. Example — Text Capture
+
+## Input
+
+```text
+Need to cancel my gym membership before August 12.
+```
+
+## ExtractionResult
+
+```json
+{
+  "draft": {
+    "title": "Cancel gym membership",
+    "category": "deadline",
+    "temporalKind": "deadline",
+    "targetAt": "2026-08-12",
+    "timePrecision": "date_only",
+    "timezone": "Australia/Melbourne",
+    "nextAction": "Cancel gym membership before renewal",
+    "location": null,
+    "amount": null,
+    "contactOrProvider": "Gym",
+    "context": null,
+    "suggestedReminderAt": "2026-08-10T09:00:00+10:00"
+  },
+  "confidence": "high",
+  "uncertainFields": [],
+  "clarificationQuestion": null
+}
+```
+
+---
+
+## Confirmed ReminderCard
+
+```json
+{
+  "id": "card_uuid",
+  "userId": null,
+  "title": "Cancel gym membership",
+  "category": "deadline",
+  "sourceType": "text",
+  "temporalKind": "deadline",
+  "targetAt": "2026-08-12",
+  "timePrecision": "date_only",
+  "timezone": "Australia/Melbourne",
+  "nextAction": "Cancel gym membership before renewal",
+  "location": null,
+  "amount": null,
+  "contactOrProvider": "Gym",
+  "context": null,
+  "reminder": {
+    "id": "reminder_uuid",
+    "scheduledAt": "2026-08-10T09:00:00+10:00",
+    "status": "scheduled",
+    "nativeNotificationId": null,
+    "createdAt": "2026-07-28T14:30:00+10:00",
+    "updatedAt": "2026-07-28T14:30:00+10:00"
+  },
+  "status": "active",
+  "createdAt": "2026-07-28T14:30:00+10:00",
+  "updatedAt": "2026-07-28T14:30:00+10:00",
+  "completedAt": null,
+  "archivedAt": null,
+  "deletedAt": null
+}
+```
+
+---
+
+# 40. Example — Image Capture
+
+A screenshot contains:
+
+```text
+City Dental Melbourne
+
+Appointment confirmed
+
+Tuesday 18 August
+3:30 PM
+
+120 Collins Street
+```
+
+The original screenshot is temporary.
+
+The extracted domain data may become:
+
+```json
+{
+  "title": "Attend dentist appointment",
+  "category": "appointment",
+  "sourceType": "image",
+  "temporalKind": "event",
+  "targetAt": "2026-08-18T15:30:00+10:00",
+  "timePrecision": "exact",
+  "timezone": "Australia/Melbourne",
+  "nextAction": "Attend dentist appointment",
+  "location": "120 Collins Street",
+  "amount": null,
+  "contactOrProvider": "City Dental Melbourne"
+}
+```
+
+The original screenshot does not need to remain stored after confirmation.
+
+---
+
+# 41. Example — Ambiguous Capture
+
+## Input
+
+```text
+Alex said they might know by Thursday or Friday.
+Message them again if I haven't heard back.
+```
+
+Possible extraction:
+
+```json
+{
+  "draft": {
+    "title": "Follow up with Alex",
+    "category": "follow_up",
+    "temporalKind": "follow_up",
+    "targetAt": null,
+    "timePrecision": "unknown",
+    "timezone": "Australia/Melbourne",
+    "nextAction": "Message Alex if there has been no response",
+    "location": null,
+    "amount": null,
+    "contactOrProvider": "Alex",
+    "context": "Alex expects to know by Thursday or Friday",
+    "suggestedReminderAt": null
+  },
+  "confidence": "medium",
+  "uncertainFields": [
+    {
+      "field": "targetAt",
+      "reason": "Two possible follow-up dates were provided.",
+      "alternatives": [
+        "Thursday",
+        "Friday"
+      ]
+    }
+  ],
+  "clarificationQuestion":
+    "Would you like to follow up on Thursday or Friday?"
+}
+```
+
+The application should resolve important ambiguity during Review rather than silently turning uncertain information into persistent data.
+
+---
+
+# 42. MVP Schema Assumptions
+
+The following are deliberate simplifications for MVP v0.1.
+
+---
+
+## One Capture → One Primary Future Action
+
+The MVP assumes one Capture normally produces one Reminder Card.
+
+If multiple actions are detected, WillDo may:
+
+- identify one primary candidate
+- ask which Future Action the user wants to capture
+
+Automatic creation of multiple cards is outside the initial MVP.
+
+---
+
+## One Card → One Primary Reminder
+
+The MVP supports one primary Reminder Schedule per card.
+
+Multiple reminder schedules may be introduced later if user evidence justifies them.
+
+---
+
+## Category Is Lightweight
+
+Categories are not intended to create:
+
+- folders
+- projects
+- nested structures
+- workflow engines
+- independent life-admin systems
+
+---
+
+## Raw Input Is Not Product History
+
+Screenshots and raw audio should not become a permanent personal archive by default.
+
+The confirmed Future Action is the primary persistent object.
+
+---
+
+# 43. Schema Change Rule
+
+Before adding a persistent domain field, ask:
 
 1. Does the user need this information when the Future Action returns later?
-2. Does it support capture, understanding, reminding, or resolving?
-3. Does it need to be persisted, or can it remain temporary?
-4. Is it a real product requirement or merely something AI is capable of extracting?
+2. Does it support Capture, understanding, reminding, or resolving?
+3. Does it actually need persistence?
+4. Is this a product requirement or merely something AI can extract?
+5. Does it introduce additional privacy risk?
+6. Can the need be solved without changing the domain model?
 
-Do not persist information simply because AI can detect it.
+Do not modify the domain schema simply because:
 
-The schema should represent the user's Future Action, not the full contents of the original information.
+- a model can extract another field
+- a SQLite table would be easier to design differently
+- a future feature might hypothetically use the information
+
+The domain should represent the Future Action, not every technical capability of the system.
+
+---
+
+# 44. Persistence Change Rule
+
+Before changing the SQLite persistence schema, ask:
+
+1. Does the domain model actually need to change?
+2. Can the persistence representation change without affecting product semantics?
+3. Does existing local data require migration?
+4. Does the change leak infrastructure details into feature code?
+5. Is the change required in the current development phase?
+
+Prefer changing:
+
+```text
+SQLite implementation
+```
+
+without changing:
+
+```text
+product domain
+```
+
+when the product meaning itself has not changed.
+
+---
+
+# 45. Data North Star
+
+WillDo should persist:
+
+> The minimum reliable information required for a Future Action to make sense when it returns later.
+
+The goal is not to build the richest possible data model.
+
+The goal is to represent enough information to support:
+
+```text
+Capture
+→ Understand
+→ Review
+→ Remind
+→ Resolve
+```
+
+without accumulating unnecessary complexity or personal data.

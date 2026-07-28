@@ -10,7 +10,7 @@
 
 # 1. Project Overview
 
-WillDo is a **capture-first AI product** built around the concept of:
+WillDo is a **capture-first AI product** built around:
 
 > Future Action Capture (FAC)
 
@@ -67,21 +67,23 @@ These documents define:
 | `PRODUCT_BRIEF.md` | What WillDo is and why it exists |
 | `MVP_SCOPE.md` | What is and is not part of the MVP |
 | `DATA_SCHEMA.md` | Core product data contracts |
-| `AI_EXTRACTION_SPEC.md` | AI behaviour and structured extraction rules |
+| `AI_EXTRACTION_SPEC.md` | AI behaviour and extraction rules |
 | `PRIVACY_RULES.md` | Privacy and data-handling constraints |
-| `UX_FLOWS.md` | Intended user interaction flows |
+| `UX_FLOWS.md` | Intended interaction flows |
 | `DECISIONS.md` | Important product and technical decisions |
 | `BUILD_PLAN.md` | Development phases and task sequence |
 
 Do not silently contradict these documents.
 
-If implementation exposes a conflict:
+If implementation exposes a genuine conflict:
 
 ```text
 Stop
 → explain the conflict
 → propose options
-→ wait for or make an explicit documented decision
+→ make or request an explicit decision
+→ update documentation if necessary
+→ implement
 ```
 
 Do not modify product direction merely because another implementation would be easier.
@@ -204,7 +206,7 @@ AI must not automatically:
 - invent missing dates
 - invent locations
 - invent amounts
-- invent actions unsupported by the capture
+- invent unsupported actions
 
 The user remains authoritative.
 
@@ -219,7 +221,7 @@ Capture
 → Schedule
 ```
 
-Once a user edits an AI-generated field, the user's value should be treated as authoritative.
+Once the user edits an AI-generated field, the user's value should be treated as authoritative.
 
 ---
 
@@ -227,7 +229,7 @@ Once a user edits an AI-generated field, the user's value should be treated as a
 
 WillDo should prefer uncertainty over hallucination.
 
-When information is ambiguous:
+When important information is ambiguous:
 
 ```text
 show uncertainty
@@ -247,7 +249,7 @@ When should you follow up?
 [Another date]
 ```
 
-over a generic chatbot question.
+over a generic open-ended chatbot exchange.
 
 Follow:
 
@@ -261,7 +263,7 @@ for extraction behaviour.
 
 # 8. Core Data Boundaries
 
-Do not merge the following concepts into one object:
+Do not merge the following concepts:
 
 ```text
 CaptureInput
@@ -271,15 +273,15 @@ ReminderCard
 
 They represent different lifecycle stages.
 
-### CaptureInput
+## CaptureInput
 
 Temporary raw input.
 
-### ExtractionResult
+## ExtractionResult
 
 Temporary AI interpretation.
 
-### ReminderCard
+## ReminderCard
 
 Confirmed persistent Future Action.
 
@@ -289,7 +291,7 @@ Use the canonical types defined in:
 docs/DATA_SCHEMA.md
 ```
 
-Do not create duplicate competing versions of the same types inside feature components.
+Do not create duplicate competing domain models inside feature components.
 
 ---
 
@@ -313,7 +315,7 @@ explain the reason
 → update DATA_SCHEMA.md
 → update affected specifications
 → record significant decisions in DECISIONS.md
-→ then implement
+→ implement
 ```
 
 ---
@@ -326,7 +328,7 @@ Do not merge:
 targetAt
 ```
 
-and:
+with:
 
 ```text
 reminder.scheduledAt
@@ -358,7 +360,7 @@ into:
 August 20 at 9:00 AM
 ```
 
-and represent that as source information.
+and present that time as source information.
 
 Product defaults and AI suggestions must remain distinguishable from extracted facts.
 
@@ -394,31 +396,99 @@ Primary technology:
 React Native
 Expo
 TypeScript
+Expo Router
 ```
 
-Use native mobile patterns rather than designing the application as a web page adapted to mobile.
+The project should use native mobile interaction patterns rather than treating the app as a web page adapted to mobile.
 
-The application should eventually support:
+The exact installed package versions are defined by:
 
-- native local notifications
-- image capture / selection
-- microphone access
-- calendar integration
-- system-level capture features
+```text
+package.json
+lockfile
+```
 
-but these should be implemented according to the phases in `BUILD_PLAN.md`.
+Do not hard-code SDK version assumptions into product logic.
 
 ---
 
-# 13. Incremental Development
+# 13. Expo Router
+
+Use:
+
+```text
+Expo Router
+```
+
+as the primary application routing system.
+
+Do not introduce a second competing routing architecture without a strong technical reason.
+
+Routes should support future deep-linkable destinations such as:
+
+```text
+/reminders/[id]
+```
+
+which may later be opened by:
+
+- notifications
+- Share Sheet flows
+- widgets
+- external entry points
+
+Routing decisions should preserve this capability where practical.
+
+---
+
+# 14. Development Build
+
+Expo Go may be used for very early smoke testing.
+
+WillDo should move to an:
+
+```text
+Expo Development Build
+```
+
+early in development.
+
+Do not architect native features around Expo Go limitations.
+
+This matters because WillDo will progressively use:
+
+- notifications
+- image access
+- microphone access
+- calendar access
+- future native integrations
+
+When reporting native verification, distinguish between:
+
+```text
+Expo Go
+Simulator / Emulator
+Development Build
+Physical device
+```
+
+---
+
+# 15. Incremental Development
 
 Do not build the entire MVP in one step.
 
-Follow the current development order:
+Follow the current sequence in:
+
+```text
+docs/BUILD_PLAN.md
+```
+
+Current phases:
 
 ```text
 Phase 0
-Project foundation
+Project Foundation
 
 Phase 1
 Text Capture + Mock AI
@@ -442,18 +512,18 @@ Phase 7
 MVP Validation
 ```
 
-Do not implement later-phase features merely because they are easy to add while working on an earlier task.
+Do not implement later-phase features merely because they are convenient to add during an earlier task.
 
 ---
 
-# 14. Local-First Architecture
+# 16. Local-First Architecture
 
 The MVP does not require:
 
 - authentication
-- cloud database
+- cloud Reminder Card database
 - account recovery
-- cross-device sync
+- multi-device sync
 
 Confirmed Reminder Cards are initially persisted locally.
 
@@ -461,13 +531,51 @@ However:
 
 > Local-first must remain cloud-ready.
 
-UI components must not directly depend on a storage technology.
+UI components must not directly depend on the underlying storage technology.
 
 ---
 
-# 15. Repository Rule
+# 17. Primary Local Persistence
 
-All persistent Reminder Card access must go through:
+The initial Reminder Card persistence implementation should use:
+
+```text
+expo-sqlite
+```
+
+through:
+
+```text
+SQLiteCardRepository
+```
+
+The intended boundary is:
+
+```text
+UI / Application Logic
+↓
+CardRepository
+↓
+SQLiteCardRepository
+↓
+expo-sqlite
+```
+
+Do not use:
+
+```text
+AsyncStorage
+```
+
+as the primary database for Reminder Cards.
+
+AsyncStorage or other simple key-value persistence may still be appropriate for small settings or non-domain preferences if a concrete need appears.
+
+---
+
+# 18. Repository Rule
+
+All persistent Reminder Card operations must go through:
 
 ```ts
 CardRepository
@@ -475,12 +583,10 @@ CardRepository
 
 The UI must not directly:
 
-- read AsyncStorage
-- write AsyncStorage
-- access SQLite
+- execute SQL
+- access SQLite tables
 - access future Supabase tables
-
-or depend on another persistence implementation.
+- depend on storage-specific row shapes
 
 Use the repository abstraction defined in:
 
@@ -491,11 +597,15 @@ docs/DATA_SCHEMA.md
 Conceptually:
 
 ```text
+Today:
+
 UI
 ↓
 CardRepository
 ↓
-LocalCardRepository
+SQLiteCardRepository
+↓
+expo-sqlite
 ```
 
 Future:
@@ -505,14 +615,71 @@ UI
 ↓
 CardRepository
 ↓
-SupabaseCardRepository
+Cloud / Sync implementation
+↓
+Supabase or another backend
 ```
 
 The UI contract should remain stable.
 
 ---
 
-# 16. Extraction Service Rule
+# 19. Domain Model vs Database Model
+
+Do not assume:
+
+```text
+ReminderCard
+=
+SQLite row
+```
+
+The persistent representation may differ from the domain model.
+
+The repository is responsible for mapping between:
+
+```text
+Database representation
+↔
+Domain objects
+```
+
+where necessary.
+
+Database implementation details should not leak into feature UI.
+
+---
+
+# 20. SQLite Scope
+
+Use SQLite for structured local Reminder Card persistence.
+
+Do not introduce an ORM during the initial MVP unless there is a concrete demonstrated need.
+
+Do not automatically add:
+
+```text
+Drizzle
+Prisma
+Realm
+WatermelonDB
+```
+
+for speculative future complexity.
+
+Start with:
+
+```text
+expo-sqlite
++
+SQLiteCardRepository
+```
+
+If database complexity later justifies an ORM, make that decision explicitly.
+
+---
+
+# 21. Extraction Service Rule
 
 The UI must not directly call an AI provider.
 
@@ -522,7 +689,7 @@ Use:
 ExtractionService
 ```
 
-The initial implementations may include:
+The intended implementations include:
 
 ```text
 MockExtractionService
@@ -537,48 +704,145 @@ ExtractionResult
 
 structures.
 
-The Review UI should not know which model or provider produced the result.
+The Review UI should not know:
+
+- which model was used
+- which AI provider was used
+- what prompt was used
+- which backend delivered the result
 
 ---
 
-# 17. AI Credentials
+# 22. Phase 2 AI Backend
 
-Never embed reusable private AI provider credentials in the mobile client.
-
-Do not:
-
-```ts
-const OPENAI_API_KEY = "...";
-```
-
-inside distributed client code.
-
-Production AI architecture should use protected infrastructure such as:
+The initial real-AI backend direction is:
 
 ```text
 WillDo App
 ↓
-Backend / Edge Function
+ExtractionService
+↓
+Supabase Edge Function
 ↓
 AI Provider
 ```
+
+Supabase is initially used to provide protected server-side AI access.
+
+This does not automatically put the following into MVP scope:
+
+```text
+Supabase Auth
+Supabase Postgres Reminder Card storage
+Cloud sync
+Multi-device sync
+```
+
+Do not expand Supabase usage beyond the current task simply because the infrastructure already exists.
+
+---
+
+# 23. AI Credentials
+
+Never embed reusable private AI provider credentials in the mobile client.
+
+Do not write:
+
+```ts
+const AI_API_KEY = "...";
+```
+
+inside distributed application code.
+
+Private provider secrets belong in protected server-side infrastructure.
 
 Phase 1 mock development does not require AI backend infrastructure.
 
 ---
 
-# 18. Notification Service Rule
+# 24. Runtime Validation
 
-Native notification behaviour should be isolated behind a service abstraction where practical.
+Use:
+
+```text
+Zod
+```
+
+at untrusted runtime boundaries where TypeScript alone cannot guarantee the shape of received data.
+
+Important examples include:
+
+- AI structured responses
+- backend responses
+- future persisted-data migrations
+- external payloads
 
 Conceptually:
 
 ```text
-UI / Application Logic
+Untrusted external data
+↓
+Zod validation
+↓
+Trusted domain structure
+↓
+Application logic
+```
+
+Do not treat:
+
+```ts
+externalResponse as ExtractionResult
+```
+
+as sufficient runtime validation.
+
+---
+
+# 25. Zod Scope
+
+Zod is intended for runtime trust boundaries.
+
+Do not unnecessarily create Zod schemas around every internal object.
+
+Use:
+
+```text
+TypeScript
+```
+
+for normal internal static typing.
+
+Use:
+
+```text
+Zod
+```
+
+when runtime data may not match the expected TypeScript shape.
+
+---
+
+# 26. Notification Service Rule
+
+Native notification behaviour should be isolated behind:
+
+```ts
+NotificationService
+```
+
+where practical.
+
+Intended implementation:
+
+```text
+Application Logic
 ↓
 NotificationService
 ↓
-Expo / Native Notification API
+ExpoNotificationService
+↓
+expo-notifications
 ```
 
 Responsibilities may include:
@@ -589,38 +853,105 @@ cancel
 reschedule
 ```
 
-Do not scatter native notification calls throughout unrelated UI components.
+Do not scatter direct Expo Notifications API calls across unrelated screens.
 
 ---
 
-# 19. Notification Lifecycle
+# 27. Notification Lifecycle
 
 When reminder timing changes:
 
 ```text
-Cancel previous notification
-→ schedule new notification
+Cancel old notification
+→ schedule replacement
 → persist updated state
 ```
 
 When a card becomes done:
 
 ```text
-Cancel any future scheduled notification
+Cancel future scheduled notification
 ```
 
 When a card is deleted:
 
 ```text
-Cancel associated scheduled notification
+Cancel associated notification
 → delete card
 ```
 
-Do not leave orphan notifications active.
+Do not leave orphan native notifications scheduled.
 
 ---
 
-# 20. Privacy Rules
+# 28. Native Capability Direction
+
+The current implementation direction is:
+
+```text
+Navigation
+→ Expo Router
+
+Local persistence
+→ expo-sqlite
+
+Image selection / camera
+→ expo-image-picker
+
+Voice recording
+→ expo-audio
+
+Local notifications
+→ expo-notifications
+
+Calendar integration
+→ expo-calendar
+```
+
+These are deliberate current implementation choices.
+
+Do not substitute another major library casually.
+
+If implementation evidence shows a listed option is unsuitable:
+
+```text
+explain why
+→ propose replacement
+→ evaluate architecture impact
+→ update DECISIONS.md if material
+→ implement
+```
+
+---
+
+# 29. State Management
+
+Do not introduce a global state-management library by default.
+
+Start with:
+
+```text
+React local state
+Custom hooks
+Repository / Service abstractions
+```
+
+Do not add:
+
+```text
+Redux
+Zustand
+MobX
+TanStack Query
+```
+
+simply because they are common in larger applications.
+
+Introduce state-management infrastructure only when an actual complexity problem appears.
+
+---
+
+# 30. Privacy Rules
 
 Follow:
 
@@ -628,9 +959,9 @@ Follow:
 docs/PRIVACY_RULES.md
 ```
 
-as a product constraint.
+as an implementation constraint.
 
-Core rules:
+Core rules include:
 
 - capture is user-initiated
 - no email scanning
@@ -642,13 +973,13 @@ Core rules:
 - persist minimum useful information
 - allow user deletion
 
-Privacy requirements should not be bypassed for implementation convenience.
+Privacy requirements must not be bypassed for implementation convenience.
 
 ---
 
-# 21. Raw Image Handling
+# 31. Raw Image Handling
 
-Original images are temporary capture inputs by default.
+Original images are temporary Capture inputs by default.
 
 Do not automatically add:
 
@@ -658,46 +989,47 @@ imageArchive
 attachmentLibrary
 ```
 
-to persisted Reminder Cards.
+to persistent Reminder Cards.
 
 The intended flow is:
 
 ```text
-select image
+Select image
 → process
 → review
 → confirm
 → persist Future Action
-→ discard unnecessary raw image
+→ discard unnecessary source image
 ```
 
-Persistent source-image retention requires a deliberate product and privacy decision.
+Persistent source-image retention requires an explicit product and privacy decision.
 
 ---
 
-# 22. Voice Handling
+# 32. Voice Handling
 
-Voice is a capture mechanism, not a recording-storage feature.
+Voice is a Capture mechanism, not a recording-storage feature.
 
 The intended flow is:
 
 ```text
-record
-→ speech-to-text
-→ extraction
+Record
+→ transcribe
+→ extract
 → review
-→ discard raw audio
+→ confirm
+→ discard unnecessary raw audio
 ```
 
 Do not retain raw voice recordings by default.
 
 ---
 
-# 23. Logging
+# 33. Logging
 
-Never log raw private capture data by default.
+Never log raw private Capture data by default.
 
-Avoid:
+Avoid production logging such as:
 
 ```ts
 console.log(captureInput);
@@ -706,7 +1038,7 @@ console.log(aiResponse);
 console.log(reminderCard);
 ```
 
-when these may contain real user content.
+when those objects may contain real user content.
 
 Prefer metadata:
 
@@ -721,9 +1053,9 @@ Development-only debugging that exposes content must not remain in production bu
 
 ---
 
-# 24. Analytics
+# 34. Analytics
 
-Analytics should measure product behaviour, not user content.
+Analytics should measure behaviour, not private content.
 
 Acceptable examples:
 
@@ -737,7 +1069,7 @@ notification_opened
 reminder_completed
 ```
 
-Do not send private fields such as:
+Do not send private values such as:
 
 ```text
 title
@@ -749,11 +1081,11 @@ originalText
 voiceTranscript
 ```
 
-as analytics properties unless an explicit future privacy decision allows it.
+as analytics properties unless a future explicit privacy decision allows it.
 
 ---
 
-# 25. Native Permissions
+# 35. Native Permissions
 
 Request permissions contextually.
 
@@ -769,7 +1101,7 @@ Calendar
 
 all during first launch.
 
-Request permissions only when the user chooses the relevant capability.
+Request each permission only when the user attempts the related capability.
 
 Permission denial should degrade gracefully.
 
@@ -782,19 +1114,20 @@ Microphone denied
 
 ---
 
-# 26. Error Handling
+# 36. Error Handling
 
 Do not silently fail.
 
-Important operations should expose:
+Important async operations should expose meaningful states such as:
 
 ```text
+idle
 loading
 success
 error
 ```
 
-where relevant.
+where appropriate.
 
 User input should not disappear unnecessarily after recoverable errors.
 
@@ -809,11 +1142,11 @@ Couldn't understand this capture.
 [Enter Manually]
 ```
 
-WillDo must remain useful when AI is unavailable.
+WillDo should remain useful when AI is unavailable.
 
 ---
 
-# 27. Offline Behaviour
+# 37. Offline Behaviour
 
 Because WillDo is local-first, existing Reminder Cards should remain available offline where practical.
 
@@ -827,13 +1160,13 @@ Examples:
 - mark Done
 - delete Card
 
-Real AI extraction may require internet access.
+Real AI extraction may require connectivity.
 
-Do not block access to existing local data because AI is unavailable.
+Do not block access to existing SQLite data because AI or Supabase is unavailable.
 
 ---
 
-# 28. UX Complexity Rule
+# 38. UX Complexity Rule
 
 Do not add complex management UX unless explicitly required.
 
@@ -850,20 +1183,20 @@ Avoid default introduction of:
 
 Ask:
 
-> Does this reduce the effort required to capture or resolve a Future Action?
+> Does this reduce the effort required to capture, remember, or resolve a Future Action?
 
 If not, it is probably outside the core product.
 
 ---
 
-# 29. Component Design
+# 39. Component Design
 
 Prefer:
 
 - small focused components
 - clear prop contracts
-- reusable UI primitives when there is real reuse
-- feature-local code when functionality is feature-specific
+- reusable primitives when there is real reuse
+- feature-local logic when behaviour is feature-specific
 
 Avoid:
 
@@ -872,7 +1205,7 @@ Avoid:
 - global state for everything
 - abstractions created only for hypothetical future features
 
-Use abstraction where it protects a deliberate boundary, especially:
+Use abstraction deliberately where it protects an established boundary, especially:
 
 ```text
 Storage
@@ -882,7 +1215,7 @@ Notifications
 
 ---
 
-# 30. TypeScript
+# 40. TypeScript
 
 Use TypeScript consistently.
 
@@ -897,26 +1230,27 @@ unless there is a specific unavoidable reason.
 Prefer:
 
 - explicit shared domain types
-- discriminated unions where appropriate
-- validation at external boundaries
-- nullability that reflects the schema
+- discriminated unions where useful
+- accurate nullability
+- runtime validation at external boundaries
 
-Do not silently cast external AI responses into trusted domain types without validation.
+Do not silently cast external data into trusted domain types.
 
 ---
 
-# 31. External Data Validation
+# 41. External Data Validation
 
 Treat data from:
 
-- AI responses
-- device APIs
-- future backend APIs
-- persisted legacy data
+- AI
+- backend APIs
+- native APIs
+- future cloud APIs
+- future migrated local data
 
-as external input.
+as potentially untrusted.
 
-Validate before relying on it.
+Validate where necessary before relying on it.
 
 AI structured output must follow:
 
@@ -924,36 +1258,46 @@ AI structured output must follow:
 docs/AI_EXTRACTION_SPEC.md
 ```
 
-Invalid data should produce controlled failure rather than corrupt persistent product state.
+Invalid data should cause a controlled failure instead of corrupting persistent product state.
 
 ---
 
-# 32. Dependency Rule
+# 42. Dependency Rule
 
-Do not introduce a new dependency without a clear reason.
+Do not introduce a dependency without a concrete reason.
 
 Before adding one, consider:
 
 1. What problem does it solve?
-2. Does Expo / React Native already provide the capability?
-3. Is it required in the current phase?
-4. Does it create meaningful maintenance cost?
+2. Is it required in the current phase?
+3. Does Expo or React Native already provide the capability?
+4. What maintenance cost does it introduce?
 5. Is the package actively maintained?
 
-Avoid dependency accumulation during vibe coding.
+Current deliberate dependencies include:
 
-If a dependency materially changes architecture, explain the choice before introducing it.
+```text
+Expo Router
+expo-sqlite
+Zod
+```
+
+and later phase-specific Expo modules.
+
+Additional dependencies are not forbidden.
+
+They require justification.
 
 ---
 
-# 33. Refactoring Rule
+# 43. Refactoring Rule
 
-Do not perform unrelated large refactors while implementing a focused task.
+Do not perform unrelated large refactors during a focused task.
 
 Refactoring is appropriate when it:
 
 - removes relevant duplication
-- fixes architectural boundary violations
+- restores architectural boundaries
 - improves maintainability of the current feature
 - fixes bugs
 - supports the current phase
@@ -962,23 +1306,27 @@ Avoid speculative architecture for:
 
 ```text
 future enterprise scale
-future cloud sync
 future teams
 future web version
+future multi-region infrastructure
 ```
 
-Cloud readiness should come primarily from clean interfaces.
+Cloud readiness should come primarily from clean interfaces rather than premature cloud systems.
 
 ---
 
-# 34. Scope Control
+# 44. Scope Control
 
-Before implementing a feature, confirm that it appears in:
+Before implementing a feature, confirm that it belongs to:
 
 ```text
-MVP_SCOPE.md
-or
-BUILD_PLAN.md
+docs/MVP_SCOPE.md
+```
+
+or:
+
+```text
+docs/BUILD_PLAN.md
 ```
 
 If not, do not implement it automatically.
@@ -993,13 +1341,11 @@ report it
 
 ---
 
-# 35. Documentation Change Rule
+# 45. Documentation Change Rule
 
-When implementation intentionally changes an established product decision, update the documentation.
+When implementation intentionally changes an established product or technical decision, update documentation.
 
-Examples:
-
-A change to:
+Examples include changes to:
 
 ```text
 ReminderCard schema
@@ -1007,10 +1353,10 @@ AI extraction behaviour
 privacy model
 MVP scope
 core UX flow
-storage architecture
+local persistence architecture
+routing architecture
+AI backend architecture
 ```
-
-should update the corresponding document.
 
 Significant changes should also be recorded in:
 
@@ -1022,14 +1368,14 @@ Code and documentation should not knowingly contradict each other.
 
 ---
 
-# 36. Task Scope
+# 46. Task Scope
 
 Each Codex task should be small and independently reviewable.
 
 Good:
 
 ```text
-Implement CardRepository interface and local implementation.
+Implement SQLiteCardRepository.
 ```
 
 Good:
@@ -1041,13 +1387,13 @@ Build editable Review screen for mock ExtractionResult.
 Bad:
 
 ```text
-Build the MVP.
+Build Phase 1.
 ```
 
 Bad:
 
 ```text
-Finish all AI features.
+Finish the MVP.
 ```
 
 A task should usually be small enough to:
@@ -1064,7 +1410,7 @@ in one coherent change.
 
 ---
 
-# 37. Before Starting a Task
+# 47. Before Starting a Task
 
 Before making changes:
 
@@ -1072,34 +1418,34 @@ Before making changes:
 2. Read the task description.
 3. Read relevant `/docs` files.
 4. Inspect existing implementation.
-5. Identify existing patterns that should be reused.
-6. Confirm the task belongs to the current development phase.
-7. Identify any product or architecture conflict before coding.
+5. Identify established patterns to reuse.
+6. Confirm the task belongs to the current phase.
+7. Identify product or architecture conflicts before coding.
 
-Do not immediately generate code before understanding the existing repository.
+Do not immediately generate code before understanding the repository.
 
 ---
 
-# 38. During a Task
+# 48. During a Task
 
 While implementing:
 
 - keep changes focused
-- preserve existing behaviour unless change is required
-- follow established types and interfaces
-- do not add unrelated features
-- do not silently modify scope
-- do not bypass repository/service abstractions
+- preserve unrelated existing behaviour
+- follow established domain types
+- follow repository and service boundaries
+- do not expand scope silently
 - handle loading and error states
 - consider empty states where relevant
 - consider permission denial where relevant
-- consider privacy implications when processing new data
+- consider privacy implications when new data is processed
+- avoid unnecessary dependencies
 
-If blocked by an important ambiguity, explain it instead of inventing product behaviour.
+If blocked by an important ambiguity, surface it rather than inventing product behaviour.
 
 ---
 
-# 39. Verification
+# 49. Verification
 
 Before declaring a task complete, run the relevant available checks.
 
@@ -1109,7 +1455,8 @@ These may include:
 TypeScript
 Lint
 Tests
-Expo build / development launch
+Expo development launch
+SQLite persistence check
 Manual flow verification
 ```
 
@@ -1120,20 +1467,28 @@ For native features such as:
 - camera
 - microphone
 - notifications
+- calendar
 
-physical-device testing may eventually be required.
+physical-device testing may be required.
 
-Clearly state when verification was limited to a simulator or static checks.
+Clearly state when verification was limited to:
+
+```text
+static checks
+simulator / emulator
+development build
+physical device
+```
 
 ---
 
-# 40. Task Completion Report
+# 50. Task Completion Report
 
 When completing a coding task, summarise:
 
 ## What changed
 
-A brief explanation of implementation.
+Briefly explain the implementation.
 
 ## Files changed
 
@@ -1141,7 +1496,7 @@ List important files created or modified.
 
 ## Verification
 
-Explain what checks were run.
+Explain which checks were actually run.
 
 ## Remaining limitations
 
@@ -1149,13 +1504,13 @@ State anything intentionally incomplete.
 
 ## Decisions / assumptions
 
-Mention any new assumption that may need product review.
+Mention new assumptions or conflicts that may require product review.
 
 Do not hide unresolved problems behind a successful-sounding completion message.
 
 ---
 
-# 41. Build Plan Compliance
+# 51. Build Plan Compliance
 
 Development should follow:
 
@@ -1167,28 +1522,27 @@ The next task should normally come from the current phase.
 
 Do not skip to later-phase functionality unless:
 
-- earlier dependencies are complete, or
-- there is an explicit reason to change sequence
+- earlier dependencies are complete
+- or there is an explicit reason to change sequence
 
 Major sequencing changes should be intentional.
 
 ---
 
-# 42. Testing Priorities
+# 52. Testing Priorities
 
 Testing should focus on product-critical boundaries.
 
-Especially important:
-
-### Data
+## Data
 
 ```text
 Repository CRUD
-Persistence after restart
+SQLite persistence
 Schema validity
+Data mapping
 ```
 
-### AI
+## AI
 
 ```text
 Structured output validation
@@ -1199,7 +1553,7 @@ Relative dates
 Extraction failure
 ```
 
-### Reminder lifecycle
+## Reminder lifecycle
 
 ```text
 Schedule
@@ -1209,7 +1563,7 @@ Done
 Delete
 ```
 
-### UX
+## UX
 
 ```text
 Capture
@@ -1218,11 +1572,36 @@ Confirm
 Recover from failure
 ```
 
-Do not pursue high test coverage numbers at the expense of testing the core product loop.
+Do not pursue abstract coverage numbers at the expense of testing the core product loop.
 
 ---
 
-# 43. Accessibility
+# 53. Physical Device Rule
+
+Because WillDo depends on:
+
+- camera
+- microphone
+- local notifications
+- permissions
+- native mobile interaction
+
+major milestones should eventually be tested on a physical mobile device.
+
+Do not rely exclusively on:
+
+```text
+web preview
+Expo Go
+simulator
+emulator
+```
+
+for validating the final native experience.
+
+---
+
+# 54. Accessibility
 
 Consider accessibility while building components.
 
@@ -1234,29 +1613,29 @@ Important areas include:
 - readable hierarchy
 - colour-independent status
 - clear error messaging
-- keyboard interaction
-- reduced motion where applicable
+- keyboard behaviour
+- reduced motion where appropriate
 
 Do not deliberately create inaccessible UI to match a visual mockup.
 
 ---
 
-# 44. Visual Design
+# 55. Visual Design
 
 Until a formal design system is defined:
 
 - keep UI simple
-- prioritise hierarchy and usability
-- design for mobile touch interaction
+- prioritise hierarchy
+- prioritise touch usability
 - avoid unnecessary visual complexity
-- do not invent a large design system
-- do not introduce decorative features that slow core development
+- avoid premature design-system infrastructure
+- do not add decorative interaction that slows Capture
 
 Visual polish should not override Capture speed or Review clarity.
 
 ---
 
-# 45. Current Product Hypotheses
+# 56. Current Product Hypotheses
 
 The following are working assumptions, not permanent facts:
 
@@ -1268,16 +1647,16 @@ The following are working assumptions, not permanent facts:
 - Inbox is the right management model
 - native notifications provide sufficient reminder visibility
 - users will accept a lightweight Review step
-- AI will meaningfully reduce capture friction
+- AI will meaningfully reduce Capture friction
 - original source retention is not required by default
 
 Do not encode these assumptions so deeply that they become impossible to test or revise.
 
 ---
 
-# 46. Product Metrics Mindset
+# 57. Product Metrics Mindset
 
-When implementation allows future measurement, prefer metrics that test the product hypothesis.
+When implementation allows measurement, prefer metrics that test the product hypothesis.
 
 Important concepts include:
 
@@ -1294,14 +1673,14 @@ Do not optimise primarily for:
 ```text
 number of AI calls
 number of extracted fields
-number of task-management features
+number of productivity features
 ```
 
 The goal is lower user effort and better follow-through.
 
 ---
 
-# 47. Security and Privacy Red Flags
+# 58. Security and Privacy Red Flags
 
 Stop and raise the issue before implementing anything involving:
 
@@ -1310,17 +1689,34 @@ Stop and raise the issue before implementing anything involving:
 - bank integrations
 - continuous background monitoring
 - automatic screenshot scanning
-- persistent storage of all original captures
+- persistent storage of all source captures
 - raw capture content in analytics
 - raw personal content in production logs
 - high-sensitivity document workflows
-- large new external data integrations
+- major new external data integrations
 
-These change WillDo's privacy model and require deliberate product decisions.
+These materially change WillDo's privacy model.
 
 ---
 
-# 48. North Star
+# 59. Architecture Red Flags
+
+Stop and raise the issue before introducing:
+
+- direct SQLite access from screens
+- direct AI-provider calls from screens
+- direct notification scheduling scattered through UI
+- AsyncStorage as the main Reminder Card database
+- a second routing framework
+- ORM adoption without demonstrated database complexity
+- Redux / Zustand / MobX without demonstrated state-management need
+- Supabase Auth / Postgres merely because Edge Functions are already used
+
+These may indicate architecture drift or premature complexity.
+
+---
+
+# 60. North Star
 
 Before making a significant implementation decision, ask:
 
@@ -1330,11 +1726,15 @@ If the implementation primarily makes WillDo a more complicated task manager, it
 
 ---
 
-# 49. Final Agent Rule
+# 61. Final Agent Rule
 
 Do not optimise for:
 
 > building the most features.
+
+Do not optimise for:
+
+> using the most sophisticated architecture.
 
 Optimise for:
 

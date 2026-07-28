@@ -1,7 +1,8 @@
 # WillDo — Product & Technical Decisions
 
 > Status: Living Document  
-> Purpose: This document records important product, UX, AI, privacy, and technical decisions made during the development of WillDo.
+> Last major update: 2026-07  
+> Purpose: This document records important product, UX, AI, privacy, architecture, and technical decisions made during the development of WillDo.
 >
 > It exists to preserve the reasoning behind the product and prevent future development from drifting away from intentional decisions.
 >
@@ -19,7 +20,7 @@
 
 # 1. Decision Format
 
-Each major decision should record:
+Major decisions should record:
 
 ```text
 Decision
@@ -30,81 +31,84 @@ Future consideration
 
 A decision does not mean it can never change.
 
-If a decision changes, do not delete the original reasoning.
+When a decision changes, preserve the reasoning behind the previous choice and record why the new direction is better.
 
-Instead, record the new decision and explain why it changed.
+Working assumptions should remain clearly separated from decisions.
 
 ---
 
-# 2. Product Positioning
+# 2. Focus on Future Action Capture
 
-## 2026-07 — Focus on Future Action Capture
+## Decision
 
-### Decision
+WillDo focuses on:
 
-WillDo will focus on **Future Action Capture (FAC)** rather than general task management or life administration.
+> **Future Action Capture (FAC)**
 
-FAC describes the moment when a user encounters something they cannot deal with now but need to remember and act on later.
+rather than general task management or broad life administration.
 
-### Why
+FAC describes the moment when a user encounters something they cannot or do not want to deal with now but needs to remember and act on later.
 
-The original exploration focused broadly on life-admin management.
+## Why
 
-Competitor research showed that:
+The original product exploration focused more broadly on life administration.
 
-- general task management is already crowded
-- life-admin platforms often expand into documents, finance, email, household management, and dashboards
-- existing reminder apps are already strong at managing reminders once users know what reminder they want
+Competitor research showed that broad life-admin products often expand into:
 
-The stronger opportunity is the step before traditional reminder management:
+- documents
+- finance
+- email
+- household management
+- task management
+- dashboards
+
+Traditional reminder and task apps already manage reminders well once users know what they want to create.
+
+The stronger opportunity is the step before that:
 
 ```text
-Unstructured information
+Unstructured everyday information
 → Future Action
 ```
 
-Users frequently rely on temporary behaviours such as:
+Users currently reduce Capture Moment friction through behaviours such as:
 
 - screenshots
 - self-messages
-- saved messages
 - quick notes
-- leaving tabs open
+- saved messages
+- open browser tabs
+- relying on memory
 
-because these methods require less effort at the Capture Moment.
+These methods make capture easy but follow-through unreliable.
 
-WillDo should reduce the gap between temporary capture and future action.
+## Impact
 
-### Impact
-
-The product should prioritise:
+WillDo should prioritise:
 
 ```text
 Capture
 → Understand
 → Review
 → Remind
+→ Resolve
 ```
 
 over:
 
 ```text
 Projects
-Priorities
 Boards
-Task organisation
+Priorities
 Productivity systems
+Complex organisation
 ```
-
-Any proposed feature should be evaluated against FAC before being added.
 
 ---
 
-# 3. Product Name
+# 3. Use WillDo as the Working Product Name
 
-## 2026-07 — Use WillDo as the Working Product Name
-
-### Decision
+## Decision
 
 The working product name is:
 
@@ -112,9 +116,15 @@ The working product name is:
 WillDo
 ```
 
-### Why
+The underlying product framework remains:
 
-The name reflects the core user mindset:
+```text
+FAC — Future Action Capture
+```
+
+## Why
+
+WillDo reflects the user's mindset:
 
 > I cannot deal with this now, but I will do it later.
 
@@ -122,59 +132,55 @@ It is:
 
 - short
 - consumer-friendly
-- related to future action
-- less technical than "FAC"
-- broader than "Reminder"
+- action-oriented
+- less technical than FAC
+- broader than the word "Reminder"
 
-### Impact
+## Impact
 
-Internal product documentation and development may use:
+Product and development documentation should use:
 
 ```text
 WillDo
 ```
 
-The conceptual framework remains:
+as the working brand.
 
-```text
-FAC — Future Action Capture
-```
+## Future Consideration
 
-### Future Consideration
+Before public release, review:
 
-The final public name is not locked.
-
-Before commercial release, naming should be reviewed for:
-
+- trademark conflicts
 - App Store availability
 - domain availability
-- trademark conflicts
 - user interpretation
+- brand distinctiveness
 
 ---
 
 # 4. WillDo Is Not a Generic To-Do App
 
-## 2026-07 — Do Not Compete on Task Management
+## Decision
 
-### Decision
+WillDo will not attempt to become a complete productivity or task-management system.
 
-WillDo will not attempt to become a complete to-do or productivity application.
+## Why
 
-### Why
-
-Products such as traditional reminder and task-management apps already provide mature functionality for:
+Traditional task applications already provide mature functionality for:
 
 - task lists
-- priorities
 - projects
+- priorities
 - recurring tasks
-- tags
-- productivity systems
+- labels
+- goals
+- team workflows
 
-WillDo's differentiated value is reducing the effort required to create the Future Action in the first place.
+WillDo's differentiated value occurs earlier:
 
-### Impact
+> Reducing the effort required to turn something encountered now into something that will return later.
+
+## Impact
 
 The MVP should not introduce:
 
@@ -182,23 +188,21 @@ The MVP should not introduce:
 - projects
 - goals
 - productivity scoring
-- complex priorities
+- complex priority systems
 - habit tracking
 - team task assignment
 
-Basic card management exists only to support the Future Action lifecycle.
+Basic management exists only to support the Future Action lifecycle.
 
 ---
 
 # 5. Capture Before Structure
 
-## 2026-07 — Users Provide Information Before Organising It
+## Decision
 
-### Decision
+Users should provide information before being asked to organise it.
 
-WillDo should not ask users to structure information before capture.
-
-The preferred interaction is:
+Preferred flow:
 
 ```text
 Provide information
@@ -208,7 +212,7 @@ AI proposes structure
 User reviews
 ```
 
-rather than:
+Not:
 
 ```text
 Choose category
@@ -219,27 +223,30 @@ Choose date
 ↓
 Choose reminder
 ↓
-Add details
+Add metadata
 ```
 
-### Why
+## Why
 
-The Capture Moment often occurs when users:
+Capture Moments often occur when users:
 
 - are busy
-- do not want to think about organisation
-- have information in an existing format
-- have not yet decided exactly what reminder they need
+- are switching contexts
+- do not want to organise information
+- already have the information in another format
+- have not fully decided what action is required
 
-Structuring before capture recreates the friction WillDo is intended to remove.
+Asking for structure before capture recreates the friction WillDo is intended to remove.
 
-### Impact
+## Impact
 
-The primary entry points should accept:
+Primary capture methods are:
 
-- text
-- images
-- voice
+```text
+Text
+Image
+Voice
+```
 
 without requiring metadata first.
 
@@ -247,32 +254,21 @@ without requiring metadata first.
 
 # 6. AI Is an Enabling Layer, Not the Product Identity
 
-## 2026-07 — Product-First, AI-Assisted
+## Decision
 
-### Decision
+WillDo uses AI to reduce user work, but the default experience should not feel like an AI chatbot.
 
-WillDo will use AI extensively, but AI itself should not become the primary product experience.
+## Why
 
-The product should feel like a fast Capture tool rather than an AI chatbot.
-
-### Why
-
-The value of AI is not simply:
+AI creates value by transforming:
 
 ```text
-AI classification
-AI summarisation
-AI generation
+Interpret manually
+→ structure manually
+→ create reminder
 ```
 
-The value is that AI changes the workflow from:
-
-```text
-Interpret information manually
-→ create structured reminder
-```
-
-to:
+into:
 
 ```text
 Capture
@@ -280,47 +276,50 @@ Capture
 → review
 ```
 
-### Impact
+The product should be valuable because the workflow becomes easier, not merely because AI exists.
+
+## Impact
 
 AI should primarily:
 
-- identify Future Actions
+- identify the Future Action
 - extract relevant information
-- interpret dates
-- propose next actions
+- interpret temporal information
+- propose a next action
 - suggest reminder timing
 - identify uncertainty
 
-The default UI should not be conversational.
-
-Chat-like interaction should only appear when clarification is necessary.
+The default interaction remains structured rather than conversational.
 
 ---
 
-# 7. AI Output Requires User Confirmation
+# 7. AI Proposes, User Decides
 
-## 2026-07 — AI Proposes, User Decides
+## Decision
 
-### Decision
+AI output must not automatically become:
 
-AI-extracted information must not automatically become a confirmed Reminder Card or scheduled notification.
+- a confirmed Reminder Card
+- a scheduled notification
+- an irreversible product action
 
 The user must review and confirm the result.
 
-### Why
+## Why
 
 AI may:
 
 - misunderstand dates
-- misinterpret actions
-- select the wrong information from an image
-- infer something the user did not intend
+- select the wrong date from an image
+- misunderstand user intent
+- infer unsupported actions
+- misread transcription
 
-Reminder accuracy directly affects user trust.
+Reminder accuracy directly affects trust.
 
-### Impact
+## Impact
 
-The core flow is:
+The required flow is:
 
 ```text
 Capture
@@ -331,26 +330,17 @@ Capture
 → Schedule
 ```
 
-not:
-
-```text
-Capture
-→ AI automatically schedules reminder
-```
-
-User-edited values become authoritative and should not be overwritten by AI.
+User-edited values become authoritative.
 
 ---
 
-# 8. AI Should Express Uncertainty Instead of Guessing
+# 8. Prefer Uncertainty Over Guessing
 
-## 2026-07 — Prefer Clarification Over Hallucination
+## Decision
 
-### Decision
+When important information is ambiguous, WillDo should expose uncertainty or ask a lightweight clarification question rather than silently guessing.
 
-When important information is ambiguous, WillDo should expose uncertainty or ask a short clarification question rather than silently guessing.
-
-### Example
+## Example
 
 Input:
 
@@ -359,37 +349,35 @@ Alex said they might know by Thursday or Friday.
 Message them if I haven't heard anything.
 ```
 
-WillDo should not arbitrarily choose Thursday.
-
-Instead:
+Prefer:
 
 ```text
 When should you follow up?
 
 [Thursday]
 [Friday]
-[Choose another date]
+[Another date]
 ```
 
-### Impact
+instead of selecting Thursday without evidence.
 
-The AI schema includes:
+## Impact
 
-- overall confidence
+The AI contract includes:
+
+- confidence
 - uncertain fields
 - clarification question
 
-Clarification UX should favour quick choices over open-ended conversation.
+Clarification should normally use structured choices rather than extended chat.
 
 ---
 
-# 9. Native Mobile From the Beginning
+# 9. Build Native Mobile From the Beginning
 
-## 2026-07 — Build WillDo as a Native Mobile App
+## Decision
 
-### Decision
-
-WillDo will be developed as a native mobile application using:
+WillDo is built as a native mobile application using:
 
 ```text
 React Native
@@ -397,169 +385,408 @@ Expo
 TypeScript
 ```
 
-rather than beginning as a Next.js mobile web app.
+rather than starting as a mobile web application.
 
-### Why
+## Why
 
-Future Action Capture primarily happens in mobile contexts.
+The long-term product depends heavily on mobile-native capabilities:
 
-Important future product capabilities include:
+- local notifications
+- camera
+- photo selection
+- microphone
+- calendar access
+- deep links
+- future Share Sheet integration
+- future widgets
+- quick capture
 
-- native notifications
-- camera access
-- image selection
-- microphone access
-- calendar integration
-- Share Sheet
-- home-screen shortcuts
-- widgets
+The Capture Moment is primarily a mobile interaction.
 
-A native foundation better supports the long-term Capture-first interaction model and avoids later rebuilding the entire UI layer.
+## Impact
 
-### Impact
-
-The MVP architecture and UI should assume a native mobile environment from the beginning.
+The product architecture should assume a native mobile environment from the beginning.
 
 ---
 
-# 10. Incremental Development Despite Native Architecture
+# 10. Use Expo as the React Native Framework
 
-## 2026-07 — Native Does Not Mean Build Everything Immediately
+## Decision
 
-### Decision
-
-Although WillDo starts as a native app, development will remain incremental.
-
-### Development sequence
+WillDo uses:
 
 ```text
-Phase 1
-Text → Mock AI → Review → Card → Inbox
-
-Phase 2
-Real text AI
-
-Phase 3
-Image capture
-
-Phase 4
-Voice capture
-
-Phase 5
-Native notifications
-
-Phase 6
-Integration and polish
+Expo
 ```
 
-### Why
+as the primary React Native application framework and native tooling ecosystem.
 
-Native system capabilities add complexity.
+## Why
 
-The core interaction and data model should be validated before adding multiple integrations.
+WillDo requires multiple native capabilities that are well aligned with the Expo ecosystem.
 
-### Impact
+Using Expo reduces infrastructure and native configuration work during early development while preserving access to native capabilities when required.
+
+The project should prioritise product validation over unnecessary platform setup.
+
+## Impact
+
+Current implementation direction includes Expo modules for:
+
+```text
+Routing
+Local database
+Image capture
+Voice
+Notifications
+Calendar
+```
+
+Expo does not remove the need for architectural boundaries between application logic and native infrastructure.
+
+---
+
+# 11. Use Expo Router
+
+## Decision
+
+WillDo uses:
+
+```text
+Expo Router
+```
+
+as its routing system.
+
+## Why
+
+The application naturally contains routeable destinations such as:
+
+```text
+Inbox
+Capture
+Review
+Reminder Detail
+Completed
+```
+
+Future native interactions may need to open a specific Reminder Card directly.
+
+Examples:
+
+```text
+Notification
+→ /reminders/[id]
+
+Future Share Sheet
+→ Capture flow
+
+Future widget
+→ Reminder detail
+```
+
+A routing model designed around deep-linkable screens supports this direction.
+
+## Impact
+
+Do not introduce a second competing navigation architecture without a concrete reason.
+
+Routes should preserve the ability to navigate to individual Reminder Cards by ID.
+
+---
+
+# 12. Use Expo Development Builds
+
+## Decision
+
+WillDo should move to:
+
+```text
+Expo Development Build
+```
+
+early in development rather than depending on Expo Go as the long-term development environment.
+
+## Why
+
+Later WillDo phases depend on increasingly native functionality and configuration.
+
+Development Builds provide a development environment closer to the actual native application while still preserving Expo tooling.
+
+## Impact
+
+Expo Go may be used for early smoke testing, but:
+
+```text
+Development Build
+```
+
+is the primary direction for real feature development.
+
+Native capabilities should eventually be verified on physical devices.
+
+---
+
+# 13. Develop Incrementally
+
+## Decision
+
+Native architecture does not justify building all native functionality immediately.
+
+Development remains phased.
+
+## Sequence
+
+```text
+Phase 0
+Project Foundation
+
+Phase 1
+Text Capture + Mock AI
+
+Phase 2
+Real Text AI
+
+Phase 3
+Image Capture
+
+Phase 4
+Voice Capture
+
+Phase 5
+Native Reminder Loop
+
+Phase 6
+Integration + UX Polish
+
+Phase 7
+MVP Validation
+```
+
+## Why
+
+The core interaction and data architecture should be validated before layering on device integrations and infrastructure.
+
+## Impact
 
 Codex tasks should remain small and phase-specific.
 
-Native architecture should not be used as justification for building all device capabilities at once.
+Do not implement later-phase functionality merely because it is technically convenient.
 
 ---
 
-# 11. Local-First MVP
+# 14. Local-First MVP
 
-## 2026-07 — No Account Required for Initial MVP
+## Decision
 
-### Decision
+The initial MVP stores confirmed Future Actions locally and does not require an account.
 
-The initial MVP will store confirmed Reminder Cards locally and will not require account creation.
-
-### Why
+## Why
 
 This reduces:
 
-- implementation complexity
 - authentication work
-- database work
-- privacy risk
+- backend complexity
+- infrastructure work
 - onboarding friction
+- early privacy exposure
 
-It allows development to focus on validating the core product loop.
+It allows development to focus on validating the product itself.
 
-### Impact
+## Impact
 
 The initial MVP does not require:
 
 - login
-- cloud database
+- cloud Reminder Card database
 - account recovery
 - multi-device sync
 
-Existing Reminder Cards should remain usable offline where practical.
+Existing Reminder Cards should remain available without internet access where practical.
 
 ---
 
-# 12. Local-First but Cloud-Ready
+# 15. Local-First Must Remain Cloud-Ready
 
-## 2026-07 — Storage Must Be Abstracted
+## Decision
 
-### Decision
+Local-first storage must be hidden behind a repository abstraction.
 
-Local-first does not mean the app architecture may depend directly on local storage.
+## Architecture
 
-All persistent Reminder Card operations must use a repository abstraction.
-
-### Required pattern
-
-```ts
-export interface CardRepository {
-  listCards(): Promise<ReminderCard[]>;
-
-  getCard(
-    id: string
-  ): Promise<ReminderCard | null>;
-
-  createCard(
-    card: ReminderCard
-  ): Promise<ReminderCard>;
-
-  updateCard(
-    id: string,
-    updates: Partial<ReminderCard>
-  ): Promise<ReminderCard>;
-
-  deleteCard(
-    id: string
-  ): Promise<void>;
-}
+```text
+UI
+↓
+CardRepository
+↓
+Persistence implementation
 ```
 
-### Why
+## Why
 
-A future version may introduce:
+Future product validation may justify:
 
 ```text
 Authentication
 Cloud storage
-Supabase
 Cross-device sync
 ```
 
-without requiring the UI layer to be rewritten.
+The UI should not need major redesign when persistence changes.
 
-### Impact
+## Impact
 
-React Native components must not directly read from or write to the underlying storage mechanism.
+React Native components must not directly depend on:
+
+- SQLite
+- future Supabase tables
+- storage-specific row formats
 
 ---
 
-# 13. Capture, Extraction, and Reminder Cards Are Separate Objects
+# 16. Use expo-sqlite for Reminder Card Persistence
 
-## 2026-07 — Separate Temporary Inputs From Persistent Product Data
+## Decision
 
-### Decision
+The initial structured local database uses:
 
-WillDo will distinguish between:
+```text
+expo-sqlite
+```
+
+through:
+
+```text
+SQLiteCardRepository
+```
+
+## Why
+
+Reminder Cards are structured records that will likely need:
+
+- filtering
+- sorting
+- status queries
+- date queries
+- Completed views
+- search
+- updates
+- deletion
+- future migrations
+
+SQLite is better suited to this data model than treating the entire product database as key-value JSON storage.
+
+## Impact
+
+The intended architecture is:
+
+```text
+Application
+↓
+CardRepository
+↓
+SQLiteCardRepository
+↓
+expo-sqlite
+```
+
+UI code should not contain SQL.
+
+---
+
+# 17. AsyncStorage Is Not the Main Reminder Database
+
+## Decision
+
+Do not use:
+
+```text
+AsyncStorage
+```
+
+as the primary Reminder Card persistence layer.
+
+## Why
+
+AsyncStorage is suitable for simple key-value state and preferences, but Reminder Cards represent structured domain data.
+
+Using a relational local database provides a better foundation for the expected Inbox and lifecycle behaviour.
+
+## Impact
+
+AsyncStorage may still be used later for small values such as:
+
+- local preferences
+- simple onboarding state
+- non-domain settings
+
+when appropriate.
+
+---
+
+# 18. Do Not Introduce an ORM Initially
+
+## Decision
+
+The initial SQLite implementation will not use an ORM.
+
+Start with:
+
+```text
+expo-sqlite
++
+SQLiteCardRepository
+```
+
+## Why
+
+The initial domain is small.
+
+Likely early database needs include only a limited number of structured entities, such as:
+
+```text
+Reminder Cards
+Reminder schedules
+```
+
+Introducing an ORM before database complexity exists adds:
+
+- abstraction
+- dependencies
+- migration concepts
+- agent complexity
+
+without clear current value.
+
+## Impact
+
+Do not automatically introduce:
+
+```text
+Drizzle
+Prisma
+Realm
+WatermelonDB
+```
+
+during the initial MVP.
+
+## Future Consideration
+
+Reconsider an ORM if:
+
+- schema complexity increases significantly
+- migrations become difficult
+- database query duplication becomes substantial
+- the persistence layer becomes difficult to maintain
+
+---
+
+# 19. Separate Capture, Extraction, and Persistent Data
+
+## Decision
+
+WillDo distinguishes:
 
 ```text
 CaptureInput
@@ -567,37 +794,35 @@ ExtractionResult
 ReminderCard
 ```
 
-### Why
+## Why
 
-A screenshot, voice recording, or pasted text is not the product record.
+A screenshot, voice recording, or pasted message is not itself the long-term product record.
 
-The persistent product object is the confirmed Future Action.
+The long-term object is the confirmed Future Action.
 
-Separating these objects improves:
+Separating the stages improves:
 
-- architecture
 - privacy
 - AI experimentation
-- UI clarity
+- architecture
+- Review UX
 - future cloud migration
 
-### Impact
+## Impact
 
-Raw inputs should not automatically become persistent Reminder Card fields.
+Temporary raw inputs should not automatically become persistent Reminder Card fields.
 
 ---
 
-# 14. Original Images Are Temporary by Default
+# 20. Original Images Are Temporary by Default
 
-## 2026-07 — WillDo Is Not a Screenshot Archive
+## Decision
 
-### Decision
+Images used for Capture are not retained permanently by default.
 
-Images used for capture should not be retained by default after the capture workflow is completed.
+## Why
 
-### Why
-
-The product exists to preserve:
+WillDo exists to preserve:
 
 ```text
 Future Action
@@ -606,324 +831,375 @@ Future Action
 not:
 
 ```text
-Original document
+Screenshot archive
 ```
 
-Persisting every screenshot would:
+Retaining every source image would increase:
 
-- increase privacy risk
-- increase storage complexity
-- move WillDo toward screenshot management
-- move WillDo toward document-vault competitors
+- privacy risk
+- storage requirements
+- product complexity
 
-### Impact
+and move WillDo toward a document-management product.
 
-The core Reminder Card schema does not require an original image field.
+## Impact
 
-Future image retention would require an explicit product and privacy decision.
+Reminder Cards do not require a persistent original-image field.
+
+Persistent source retention would require a new deliberate product decision.
 
 ---
 
-# 15. Voice Is Capture, Not Audio Storage
+# 21. Voice Is Capture, Not Recording Storage
 
-## 2026-07 — Do Not Retain Voice Recordings by Default
+## Decision
 
-### Decision
+Voice input should produce:
 
-Voice capture should ultimately produce text and structured Future Action information.
+```text
+Transcript
+→ Extraction
+→ Future Action
+```
 
-Raw audio should not be treated as long-term product data.
+Raw audio is not retained by default.
 
-### Why
+## Why
 
-WillDo is not:
+WillDo is not a voice-note or recording archive.
 
-- a voice-notes application
-- a recording archive
+## Impact
 
-### Impact
-
-The intended flow is:
+The intended lifecycle is:
 
 ```text
 Record
 → Transcribe
 → Extract
 → Review
-→ Discard raw audio
+→ Confirm
+→ Discard unnecessary raw audio
 ```
 
 ---
 
-# 16. Text, Image, and Voice Share the Same Core Flow
+# 22. Text, Image, and Voice Share One Core Model
 
-## 2026-07 — Capture Methods Are Inputs, Not Separate Products
+## Decision
 
-### Decision
+Text, image, and voice are input methods rather than separate reminder systems.
 
-Text, image, and voice capture should all eventually produce the same:
+All should eventually produce:
 
 ```text
 ExtractionResult
 ```
 
-and enter the same:
+and enter:
 
 ```text
-Review → Confirm → Reminder Card
+Review
+→ Confirm
+→ ReminderCard
 ```
 
-flow.
+## Why
 
-### Why
+The Future Action is the product object.
 
-The user's Future Action is the core product object.
+The format used to capture it should not fragment the architecture.
 
-The input format should not create separate product architectures.
+## Impact
 
-### Impact
-
-Avoid implementing:
+Do not build:
 
 ```text
-Text Reminder System
-Image Reminder System
-Voice Reminder System
+Text Reminder
+Image Reminder
+Voice Reminder
 ```
 
-as independent workflows.
+as separate domain models.
 
 ---
 
-# 17. Multimodal Capture Is Required for the Final MVP
+# 23. Multimodal Capture Is Part of the Complete MVP
 
-## 2026-07 — Text Alone Is Not Sufficient Product Validation
+## Decision
 
-### Decision
-
-The final MVP should support:
+The complete MVP should support:
 
 - text
 - image
 - voice
 
-although they will be implemented sequentially.
+although development is incremental.
 
-### Why
+## Why
 
-WillDo is positioned around Capture Moment convenience.
-
-Different real-life moments naturally involve different input formats.
+Different Capture Moments naturally produce different input types.
 
 Examples:
 
 ```text
 Screenshot
-→ image
+→ Image
 
-Quick thought while walking
-→ voice
+Quick thought
+→ Voice
 
-Copied message
-→ text
+Message or idea
+→ Text
 ```
 
-Testing only text would validate AI-assisted reminder creation, but not the broader Capture-first hypothesis.
-
-### Impact
-
-Text is Phase 1.
-
-Image and voice remain required parts of the complete MVP.
+Testing only text would validate AI-assisted reminder creation but not the broader Capture-first product hypothesis.
 
 ---
 
-# 18. Native Notifications Are Required for the MVP
+# 24. Use expo-image-picker for Initial Image Capture
 
-## 2026-07 — Capture Must Eventually Return to Attention
+## Decision
 
-### Decision
+The initial image capture/selection direction is:
 
-The complete MVP must support native local notifications.
+```text
+expo-image-picker
+```
 
-### Why
+## Why
 
-WillDo's promise is not merely:
+The MVP needs straightforward user-initiated access to:
 
-> I saved it.
+- existing screenshots
+- photos
+- camera capture where appropriate
+
+A standard Expo-supported path reduces unnecessary native implementation complexity.
+
+## Impact
+
+Image functionality should remain behind the Capture workflow rather than becoming a document-management subsystem.
+
+## Future Consideration
+
+This implementation may change if later requirements such as advanced camera control or Share Extensions require a different native approach.
+
+---
+
+# 25. Use expo-audio for Initial Voice Capture
+
+## Decision
+
+The initial voice recording direction is:
+
+```text
+expo-audio
+```
+
+## Why
+
+Voice is intended as a lightweight capture entry point rather than a full audio product.
+
+The application needs:
+
+```text
+Record
+→ obtain audio
+→ transcribe
+→ discard unnecessary raw audio
+```
+
+rather than advanced audio production capabilities.
+
+## Impact
+
+Voice-specific implementation should remain separated from the Future Action extraction contract.
+
+---
+
+# 26. Native Notifications Are Required for the Complete MVP
+
+## Decision
+
+WillDo's complete MVP must support native local notifications.
+
+Initial implementation direction:
+
+```text
+expo-notifications
+```
+
+behind:
+
+```text
+NotificationService
+```
+
+## Why
+
+The promise is not:
+
+> I saved something.
 
 It is:
 
-> I know it will come back when it matters.
+> It will come back when it matters.
 
-Without reminder delivery, the product only validates capture and storage.
+Without reminder delivery, only the Capture half of the product is validated.
 
-### Impact
+## Impact
 
-The complete loop must include:
+The complete loop includes:
 
 ```text
 Capture
 → Confirm
+→ Persist
 → Schedule
 → Notification
-→ Card
+→ Return to Card
 → Resolve
 ```
 
-Cloud push infrastructure is not required for the local-first MVP.
-
 ---
 
-# 19. Notification Permission Should Be Contextual
+# 27. Notification Permission Is Contextual
 
-## 2026-07 — Do Not Ask for All Permissions During Onboarding
+## Decision
 
-### Decision
+Do not request notification permission during initial onboarding by default.
 
-Notification permission should be requested when the user creates a reminder and understands why the permission is useful.
+Request it when the user understands why notifications matter.
+
+## Why
+
+Permissions requested without context:
+
+- increase friction
+- are easier to deny
+- reduce trust
+- provide unclear value
+
+## Impact
 
 The same contextual principle applies to:
 
 - camera
-- photos
+- photo library
 - microphone
 - calendar
 
-### Why
-
-Requesting multiple permissions immediately:
-
-- increases onboarding friction
-- provides little context
-- may reduce trust
-- encourages denial
-
-### Impact
-
-Permissions should be requested at the moment the related capability is used.
-
 ---
 
-# 20. Notification Privacy Is Part of Product Privacy
+# 28. Notification Privacy Is Part of Product Privacy
 
-## 2026-07 — Do Not Assume Full Card Content Belongs on the Lock Screen
+## Decision
 
-### Decision
+Do not assume that all Reminder Card information should appear on the lock screen.
 
-Notification design must consider that reminder content may be personally sensitive.
+## Why
 
-### Why
+Future Actions may contain:
 
-A Reminder Card may contain:
+- medical context
+- bills
+- landlord issues
+- personal relationships
+- private appointments
 
-```text
-medical appointment
-bill amount
-landlord issue
-personal follow-up
-```
+## Impact
 
-Displaying complete content on a lock screen could expose information unintentionally.
-
-### Impact
-
-Notification architecture should allow future variation between:
+Notification architecture should allow future variation such as:
 
 ```text
 Full detail
 Title only
-Private notification
+Private reminder
 ```
 
-The initial implementation may use a reasonable default, but should not hard-code assumptions that full card data must always appear.
+Do not tightly couple Notification content to full Reminder Card contents.
 
 ---
 
-# 21. One Capture → One Primary Future Action for MVP
+# 29. One Capture Produces One Primary Future Action in MVP
 
-## 2026-07 — Simplify Multi-Action Inputs
+## Decision
 
-### Decision
-
-MVP v0.1 assumes that one capture produces one primary Reminder Card.
-
-### Why
-
-A single input may contain multiple actions:
+MVP v0.1 assumes:
 
 ```text
-Friday go to Costco, buy milk, and return headphones.
+One Capture
+→ One Primary Reminder Card
 ```
 
-Automatically splitting one capture into multiple cards introduces:
+## Why
 
-- extraction complexity
-- review complexity
-- UI complexity
+A Capture may contain multiple actions, but automatic splitting introduces additional:
 
-before real user need has been validated.
+- AI complexity
+- Review complexity
+- UX complexity
 
-### Impact
+before the frequency of this need is known.
 
-If multiple actions are detected, WillDo may:
+## Impact
 
-- identify one primary action
+When multiple actions are detected, WillDo may:
+
+- identify a primary action
 - ask the user which action matters
 
-Automatic multi-card creation is outside the initial MVP.
-
-### Future Consideration
-
-User research should determine how frequently multi-action captures actually occur.
+Automatic multi-card extraction is outside the initial MVP.
 
 ---
 
-# 22. One Card → One Primary Reminder for MVP
+# 30. One Card Has One Primary Reminder in MVP
 
-## 2026-07 — Start With One Reminder Schedule
+## Decision
 
-### Decision
+MVP v0.1 supports one primary Reminder Schedule per Reminder Card.
 
-Each Reminder Card supports one primary scheduled reminder in MVP v0.1.
-
-### Why
+## Why
 
 Multiple reminders such as:
 
 ```text
-1 week before
+7 days before
 1 day before
 2 hours before
 ```
 
-introduce additional UI and notification complexity.
+add scheduling and UX complexity.
 
-The primary hypothesis does not require this functionality.
+They are not necessary to validate the primary FAC hypothesis.
 
-### Impact
+## Impact
 
-The schema supports one primary:
+The initial schema uses one primary reminder.
 
-```text
-ReminderSchedule
-```
+## Future Consideration
 
-per card.
-
-Multiple reminders may be introduced after testing.
+User testing should determine whether multiple reminders provide enough value to justify the complexity.
 
 ---
 
-# 23. Target Time and Reminder Time Are Different
+# 31. Target Time and Reminder Time Are Different
 
-## 2026-07 — Separate `targetAt` From `scheduledAt`
+## Decision
 
-### Decision
+Keep:
 
-The date when something matters must remain separate from the date when WillDo reminds the user.
+```text
+targetAt
+```
 
-### Example
+separate from:
+
+```text
+ReminderSchedule.scheduledAt
+```
+
+## Example
 
 ```text
 Return deadline:
@@ -933,208 +1209,429 @@ Reminder:
 August 18
 ```
 
-### Why
+## Why
 
-These represent different concepts.
+One describes when the underlying Future Action matters.
 
-Combining them into one date field would create ambiguity across:
+The other describes when WillDo returns it to attention.
 
-- deadlines
-- appointments
-- follow-ups
-- reminder scheduling
+## Impact
 
-### Impact
-
-The data model uses:
-
-```text
-targetAt
-```
-
-for the Future Action and:
-
-```text
-ReminderSchedule.scheduledAt
-```
-
-for notification timing.
+Do not merge these concepts into a generic single `date` field.
 
 ---
 
-# 24. Preserve Date Precision
+# 32. Preserve Date Precision
 
-## 2026-07 — Do Not Invent Exact Times
+## Decision
 
-### Decision
-
-WillDo should distinguish between:
+WillDo must distinguish between:
 
 ```text
-August 12
+August 20
 ```
 
 and:
 
 ```text
-August 12 at 3:30 PM
+August 20 at 3:30 PM
 ```
 
-### Why
+## Why
 
-A source that specifies a date does not automatically specify a time.
+A date-only source does not contain an exact time.
 
-AI or system defaults should not be represented as source facts.
+Product defaults must not be presented as extracted facts.
 
-### Impact
+## Impact
 
-The schema includes:
+The schema includes explicit time precision.
 
-```text
-TimePrecision
-```
-
-with values such as:
-
-```text
-exact
-date_only
-approximate
-unknown
-```
-
-Product defaults may still suggest a notification time separately.
+Reminder suggestion logic remains separate from source temporal information.
 
 ---
 
-# 25. Categories Remain Lightweight
+# 33. Categories Remain Lightweight
 
-## 2026-07 — Do Not Build Separate Systems Around Each Category
-
-### Decision
+## Decision
 
 Categories such as:
 
 ```text
 appointment
+deadline
 bill
 return
 warranty
 follow_up
 ```
 
-are labels, not independent product modules.
+are lightweight labels rather than separate product systems.
 
-### Why
+## Why
 
-Creating different domain systems would quickly expand WillDo into:
+Separate category systems would quickly expand WillDo toward:
 
 - bill management
+- finance
 - warranty management
 - appointment management
-- finance management
 - household management
 
-### Impact
+## Impact
 
-All categories remain based on the same core:
-
-```text
-ReminderCard
-```
-
-structure.
-
-Category-specific experiences may be explored later only if research demonstrates strong value.
+All categories remain based on the same core Reminder Card model.
 
 ---
 
-# 26. WillDo Should Persist Minimum Useful Information
+# 34. Persist Minimum Useful Information
 
-## 2026-07 — Do Not Store Everything AI Can Extract
+## Decision
 
-### Decision
+WillDo stores only information that remains useful when the Future Action returns later.
 
-Persistent Reminder Cards should contain only information useful when the Future Action returns later.
-
-### Why
+## Why
 
 AI may detect:
 
 - addresses
 - account numbers
+- unrelated people
 - phone numbers
-- names
-- unrelated document details
+- full document content
 
-but the user may only need:
+but these do not necessarily help the Future Action.
 
-```text
-What
-When
-Next action
-Reminder
-```
+## Impact
 
-### Impact
-
-Data minimisation applies to:
+Data minimisation applies across:
 
 - AI extraction
-- schema design
-- local storage
+- schema
+- SQLite
 - future cloud storage
 
 The ability to extract a field does not justify persisting it.
 
 ---
 
-# 27. No Email or Bank Integration in the MVP
+# 35. Use ExtractionService as the AI Boundary
 
-## 2026-07 — Capture Must Remain User-Controlled
+## Decision
 
-### Decision
+Application UI accesses AI extraction through:
 
-WillDo will not connect to:
+```ts
+ExtractionService
+```
+
+rather than directly depending on an AI provider.
+
+## Why
+
+Phase 1 begins with:
+
+```text
+MockExtractionService
+```
+
+and later changes to real AI.
+
+The AI provider may also change later because of:
+
+- accuracy
+- cost
+- latency
+- privacy
+- multimodal quality
+
+## Impact
+
+The UI should depend only on:
+
+```text
+ExtractionResult
+```
+
+rather than provider-specific APIs.
+
+---
+
+# 36. Use Supabase Edge Functions as the Initial Real-AI Backend
+
+## Decision
+
+The initial Phase 2 real AI architecture is:
+
+```text
+WillDo App
+↓
+ExtractionService
+↓
+Supabase Edge Function
+↓
+AI Provider
+```
+
+## Why
+
+A production mobile application must not embed reusable private AI provider credentials.
+
+WillDo needs a small protected server-side boundary for:
+
+- credentials
+- model calls
+- extraction API
+- future backend-side validation or control
+
+Supabase Edge Functions provide an initial server-side path without requiring a complete custom backend platform.
+
+## Impact
+
+Phase 2 introduces Supabase for AI infrastructure.
+
+This decision does **not** automatically introduce:
+
+```text
+Supabase Auth
+Supabase Postgres Reminder Cards
+Cloud sync
+Multi-device sync
+```
+
+into the MVP.
+
+---
+
+# 37. Supabase Is Not Yet the Product Database
+
+## Decision
+
+Using Supabase Edge Functions does not mean Reminder Cards migrate to Supabase during the initial MVP.
+
+## Why
+
+The local-first MVP should validate product value before adding account and sync complexity.
+
+AI backend infrastructure and user-data persistence solve different problems.
+
+## Impact
+
+During initial MVP:
+
+```text
+Reminder Cards
+→ SQLite
+
+AI requests
+→ Supabase Edge Function
+```
+
+These should remain separate concerns.
+
+---
+
+# 38. AI Secrets Must Not Live in the Mobile Client
+
+## Decision
+
+Reusable AI provider credentials must never be embedded directly in the distributed application.
+
+## Why
+
+Client-side application bundles cannot safely protect reusable private API credentials.
+
+## Impact
+
+Real model calls should go through protected server-side infrastructure.
+
+Mock AI requires no backend.
+
+---
+
+# 39. Use Zod for Runtime Validation at External Boundaries
+
+## Decision
+
+WillDo uses:
+
+```text
+Zod
+```
+
+to validate important untrusted runtime data.
+
+## Why
+
+TypeScript provides compile-time type safety but does not guarantee that external runtime data actually matches those types.
+
+Important boundaries include:
+
+```text
+AI response
+Backend response
+Future migrated data
+External payload
+```
+
+AI is especially important because structured model output must not be trusted merely because the application expects a particular TypeScript interface.
+
+## Impact
+
+Preferred flow:
+
+```text
+External response
+↓
+Zod validation
+↓
+Trusted domain structure
+↓
+Application
+```
+
+Avoid:
+
+```ts
+response as ExtractionResult
+```
+
+as the primary validation strategy.
+
+---
+
+# 40. Zod Does Not Replace TypeScript Domain Types
+
+## Decision
+
+Use Zod selectively at runtime boundaries rather than around every internal application object.
+
+## Why
+
+Adding runtime schemas everywhere would introduce unnecessary duplication and complexity.
+
+## Impact
+
+Use:
+
+```text
+TypeScript
+```
+
+for internal type contracts.
+
+Use:
+
+```text
+Zod
+```
+
+where runtime data cannot already be trusted.
+
+---
+
+# 41. Do Not Introduce Global State Management Initially
+
+## Decision
+
+The initial MVP does not use:
+
+```text
+Redux
+Zustand
+MobX
+```
+
+or another global state-management system by default.
+
+## Why
+
+Early WillDo flows are relatively small:
+
+```text
+Inbox
+Capture
+Review
+Card Detail
+```
+
+Introducing global state infrastructure before an actual state problem exists creates unnecessary architecture.
+
+## Impact
+
+Start with:
+
+```text
+React local state
+Custom hooks
+Repository / Service boundaries
+```
+
+## Future Consideration
+
+Introduce a dedicated state solution if actual application complexity demonstrates a need.
+
+---
+
+# 42. Do Not Introduce TanStack Query Initially
+
+## Decision
+
+The local-first MVP does not introduce TanStack Query simply as standard application infrastructure.
+
+## Why
+
+Initial Reminder Card data is local SQLite data rather than server-owned query state.
+
+Adding a server-state library before cloud data exists adds complexity without solving a current problem.
+
+## Future Consideration
+
+Reconsider if WillDo later introduces substantial cloud-backed server state.
+
+---
+
+# 43. No Email or Bank Integration in MVP
+
+## Decision
+
+The MVP does not connect to:
 
 - email accounts
 - bank accounts
 
-during the MVP.
+## Why
 
-### Why
+These integrations increase:
 
-These integrations:
+- privacy risk
+- trust requirements
+- technical complexity
+- infrastructure
 
-- increase privacy risk
-- increase user trust requirements
-- increase technical complexity
-- move the product toward competitors such as automated life-admin platforms
-- reduce the focus on user-initiated Capture Moments
+and move WillDo toward broad automated life-admin products.
 
-### Impact
+## Impact
 
-Information enters WillDo only through explicit user capture.
+Capture remains explicitly initiated by the user.
 
 ---
 
-# 28. No Automatic Device Scanning
+# 44. No Automatic Device Scanning
 
-## 2026-07 — WillDo Does Not Monitor the User
+## Decision
 
-### Decision
+WillDo will not automatically:
 
-The MVP will not automatically:
+- scan screenshots
+- inspect the photo library
+- monitor clipboard content
+- monitor other applications
+- continuously listen through the microphone
 
-- inspect screenshots
-- scan photo libraries
-- read clipboard contents
-- monitor apps
-- listen in the background
+## Why
 
-### Why
-
-WillDo should be:
+The product should feel:
 
 ```text
 user-controlled
@@ -1146,236 +1643,154 @@ rather than:
 always watching
 ```
 
-### Impact
+## Impact
 
-Capture begins only after explicit user action.
+Capture begins through explicit user action.
 
 ---
 
-# 29. Calendar Integration Is Complementary
+# 45. Calendar Integration Is Complementary
 
-## 2026-07 — Do Not Replace the System Calendar
+## Decision
 
-### Decision
+Calendar integration is a supporting P1 feature rather than the core data model.
 
-Calendar integration may be added for appropriate Future Actions, but WillDo will not attempt to become a calendar replacement.
+Initial implementation direction:
 
-### Why
+```text
+expo-calendar
+```
 
-Calendar applications already perform event management well.
+## Why
 
-WillDo's value occurs primarily before the calendar becomes useful.
+Calendars already manage events well.
 
-### Impact
+WillDo solves the problem that happens before users know or decide that something belongs in a calendar.
 
-P1 may offer:
+## Impact
+
+Appropriate Future Actions may offer:
 
 ```text
 Add to Calendar
 ```
 
-for appropriate cards such as:
-
-- appointments
-- events
-- inspections
-- bookings
-
-Not every Reminder Card should become a calendar event.
+Not every Reminder Card should become an event.
 
 ---
 
-# 30. Share Sheet Is Strategically Important but Post-Core MVP
+# 46. Share Sheet Is Strategically Important but Post-Core
 
-## 2026-07 — Validate Capture Before Building Advanced Entry Points
+## Decision
 
-### Decision
+Share Sheet capture is considered strategically aligned with the long-term product, but it is not a dependency of the first core MVP implementation.
 
-Native Share Sheet integration is highly aligned with WillDo's long-term Capture-first vision but is not required for the first core implementation.
+## Why
 
-### Why
-
-An ideal future flow is:
+The ideal future flow may be:
 
 ```text
 See something
 → Share
 → WillDo
+→ Understand
 → Review
 → Confirm
 ```
 
-However, Share extensions introduce additional native complexity.
+This could reduce Capture friction significantly.
 
-The core Capture model should work before advanced system entry points are implemented.
+However, it introduces additional system-level native complexity.
 
-### Impact
+## Impact
 
-Share Sheet integration remains an important post-core direction rather than an initial development blocker.
-
----
-
-# 31. AI Provider Must Be Abstracted
-
-## 2026-07 — UI Must Not Depend on a Specific Model
-
-### Decision
-
-AI extraction should be accessed through an abstraction such as:
-
-```ts
-export interface ExtractionService {
-  extract(
-    input: CaptureInput,
-    context: ExtractionContext
-  ): Promise<ExtractionResult>;
-}
-```
-
-### Why
-
-The project will initially use:
+The core product must work independently through:
 
 ```text
-MockExtractionService
+Text
+Image
+Voice
 ```
 
-and later use a real AI model.
-
-Future model choice may also change based on:
-
-- accuracy
-- cost
-- latency
-- privacy
-- multimodal performance
-
-### Impact
-
-The UI should not know which AI provider performs extraction.
-
-Mock and production extraction must return compatible data structures.
+before advanced external entry points become required.
 
 ---
 
-# 32. AI Secrets Must Not Live in the Mobile Client
+# 47. AI Failure Must Have a Manual Fallback
 
-## 2026-07 — Production AI Calls Require Protected Infrastructure
+## Decision
 
-### Decision
+Users must be able to create a Future Action when AI fails.
 
-Reusable private AI API credentials must not be embedded directly in the distributed mobile app.
+## Why
 
-### Why
+Failure may occur because of:
 
-A native application bundle cannot safely protect a reusable provider secret.
-
-### Impact
-
-Production architecture should eventually resemble:
-
-```text
-WillDo App
-↓
-WillDo Backend / Edge Function
-↓
-AI Provider
-```
-
-Phase 1 mock development does not require backend infrastructure.
-
----
-
-# 33. AI Failure Must Have a Manual Fallback
-
-## 2026-07 — WillDo Must Remain Usable Without Successful AI Extraction
-
-### Decision
-
-Users must be able to create a Future Action manually when AI extraction fails.
-
-### Why
-
-AI may fail due to:
-
-- network issues
+- connectivity
+- backend errors
 - model errors
-- unreadable images
-- transcription errors
 - invalid structured output
+- image problems
+- transcription errors
 
-The user's ability to remember something should not depend entirely on AI availability.
+The user's ability to remember something should not depend completely on AI availability.
 
-### Impact
+## Impact
 
-Failure states should provide:
+Failure states should support:
 
 ```text
 Try Again
 Enter Manually
 ```
 
-Manual creation should remain lightweight.
+Manual entry should remain lightweight.
 
 ---
 
-# 34. Review Effort Is a Key AI Product Metric
+# 48. Review Effort Is a Key AI Product Metric
 
-## 2026-07 — Measure User Work, Not Extraction Volume
+## Decision
 
-### Decision
+AI success should be measured partly by how much work remains after extraction.
 
-One of the primary AI success measures will be how much work remains after extraction.
-
-Potential metrics include:
+Potential measures:
 
 ```text
 Time to Confirm
-Fields edited per capture
+Fields edited
 Clarification rate
-% confirmed without editing
-Capture abandonment
+Confirmed without edits
+Review duration
 ```
 
-### Why
+## Why
 
-The purpose of AI is to reduce cognitive and interaction effort.
+The purpose of AI is to reduce cognitive and interaction work.
 
-Extracting more information does not necessarily create more value.
+Extracting more information is not automatically more valuable.
 
-### Impact
+## Impact
 
-AI optimisation should prioritise:
+AI optimisation should focus on:
 
 > minimum reliable user effort
 
 rather than:
 
-> maximum extracted fields
+> maximum extracted information
 
 ---
 
-# 35. Reminder Effectiveness Matters Beyond Notification Delivery
+# 49. Reminder Effectiveness Matters Beyond Delivery
 
-## 2026-07 — The Product Loop Ends at Resolution
+## Decision
 
-### Decision
+The Future Action loop ends at resolution rather than notification delivery.
 
-WillDo should evaluate whether reminders successfully return Future Actions to attention, not simply whether notifications were scheduled.
+## Why
 
-### Future signals may include:
-
-```text
-notification delivered
-notification opened
-card viewed
-card completed
-reminder rescheduled
-```
-
-### Why
-
-The complete promise is:
+WillDo promises:
 
 ```text
 Capture
@@ -1383,88 +1798,174 @@ Capture
 → Resolve
 ```
 
-not merely:
+not simply:
 
 ```text
 Capture
 → Store
 ```
 
-### Impact
+## Impact
 
-Future testing should observe behaviour after notification delivery.
-
----
-
-# 36. Current Working Assumptions
-
-The following are not permanent product decisions.
-
-They should be tested.
-
----
-
-## Assumption A — Primary Users
-
-Initial target users are:
+Future testing may evaluate:
 
 ```text
-young adults managing many small personal responsibilities
+notification delivered
+notification opened
+card viewed
+reminder completed
+reminder rescheduled
 ```
 
-This may later narrow.
+without collecting private Reminder Card content.
 
 ---
 
-## Assumption B — Capture Frequency
+# 50. Current Working Assumptions
 
-WillDo is expected to support relatively frequent Capture Moments rather than only occasional major life-admin events.
+The following are hypotheses rather than permanent decisions.
 
-This assumption supports the Capture-first direction.
-
----
-
-## Assumption C — Text, Image, and Voice All Provide Value
-
-All three capture methods are currently considered valuable.
-
-Research may reveal that one or two methods provide substantially more value than the others.
+They should remain easy to test and revise.
 
 ---
 
-## Assumption D — One Primary Reminder Is Enough for MVP
+## Assumption A — Initial Target Users
 
-Some users may eventually require multiple reminder timings.
+Initial users are expected to be:
 
-This should be tested before increasing complexity.
+> Young adults managing many small personal responsibilities across multiple apps and contexts.
+
+The audience may later become narrower.
 
 ---
 
-## Assumption E — Inbox Is the Correct Management Model
+## Assumption B — Future Action Capture Is Frequent
 
-The current concept uses an Inbox-like home experience because it supports the idea:
+WillDo assumes users encounter Future Action Capture moments frequently enough for a dedicated tool to provide repeated value.
+
+This needs validation.
+
+---
+
+## Assumption C — Text, Image, and Voice All Add Value
+
+The complete MVP currently includes all three capture methods.
+
+Testing may show that some methods are substantially more valuable than others.
+
+---
+
+## Assumption D — One Capture → One Future Action Is Enough Initially
+
+Real captures may contain multiple actions.
+
+The frequency and importance of this behaviour need validation before increasing extraction and Review complexity.
+
+---
+
+## Assumption E — One Reminder per Card Is Enough Initially
+
+Users may eventually want multiple reminder timings.
+
+MVP begins with one to preserve simplicity.
+
+---
+
+## Assumption F — Inbox Is the Right Management Model
+
+WillDo currently uses an Inbox-like model:
 
 > Things waiting for future attention.
 
-The final organisation model should be validated through usability testing.
+Testing may reveal a better structure such as:
+
+- timeline
+- Today / Upcoming
+- attention-based grouping
 
 ---
 
-## Assumption F — Local Notification Visibility Is Sufficient
+## Assumption G — Native Notifications Are Visible Enough
 
-The initial native MVP will use system notifications.
+A key original motivation is that existing reminder channels may be easy to ignore.
 
-Research should determine whether reminder visibility requires additional mechanisms such as:
+The MVP assumes:
 
-- persistent app inbox
+```text
+Native notification
++
+WillDo Inbox
+```
+
+can provide enough visibility.
+
+This needs testing.
+
+Possible future solutions include:
+
 - badges
 - widgets
-- notification actions
 - repeated reminders
+- notification actions
+- stronger Inbox surfaces
 
 ---
 
-# 37. Decision Rule
+## Assumption H — Users Accept Lightweight Review
+
+The product assumes users are willing to spend a small amount of effort checking AI output in exchange for:
+
+- accuracy
+- control
+- lower capture effort
+
+If Review feels like rebuilding the reminder manually, the core product value weakens.
+
+---
+
+## Assumption I — AI Meaningfully Reduces Capture Friction
+
+The central hypothesis is that:
+
+```text
+Capture
+→ Review
+→ Confirm
+```
+
+will feel meaningfully easier than manually interpreting and structuring an equivalent reminder.
+
+This must be validated through real use rather than assumed.
+
+---
+
+## Assumption J — Original Source Retention Is Usually Unnecessary
+
+The current privacy direction assumes that structured Future Action information normally provides enough context later.
+
+Testing may reveal that users sometimes need the original screenshot or source information to understand the reminder.
+
+If so, optional source retention may need to be explored deliberately.
+
+---
+
+# 51. Technical Decision Rule
+
+Before introducing new architecture or infrastructure, ask:
+
+1. What current problem does this solve?
+2. Is the problem present in the current development phase?
+3. Can an existing Expo or platform capability solve it?
+4. Does it introduce a new abstraction?
+5. Does it introduce a new dependency?
+6. Does it make the MVP harder to understand or maintain?
+7. Is it being added for a real requirement or hypothetical future scale?
+
+Prefer the smallest architecture that protects the boundaries WillDo actually needs.
+
+---
+
+# 52. Product Decision Rule
 
 Before changing the product direction, ask:
 
@@ -1473,18 +1974,101 @@ Before changing the product direction, ask:
 3. Does it reduce Capture Moment friction?
 4. Does it reduce cognitive effort?
 5. Does it improve reminder effectiveness?
-6. Does it introduce unnecessary task-management complexity?
+6. Does it introduce task-management complexity?
 7. Does it introduce new privacy risk?
-8. Has user research demonstrated the need?
+8. Is the change supported by user evidence?
 
-WillDo should evolve through validated user needs rather than feature accumulation.
+WillDo should evolve through validated needs rather than feature accumulation.
 
 ---
 
-# 38. Current North Star
+# 53. Current Architecture Summary
+
+The current intended MVP architecture is:
+
+```text
+React Native
++
+Expo
++
+TypeScript
+
+↓
+
+Expo Router
+
+↓
+
+UI / Feature Logic
+
+↓
+
+Domain boundaries
+
+├── CardRepository
+├── ExtractionService
+└── NotificationService
+
+↓
+
+Implementations
+
+├── SQLiteCardRepository
+│   ↓
+│   expo-sqlite
+│
+├── MockExtractionService
+│
+├── RealAIExtractionService
+│   ↓
+│   Supabase Edge Function
+│   ↓
+│   AI Provider
+│
+└── ExpoNotificationService
+    ↓
+    expo-notifications
+```
+
+Additional native directions:
+
+```text
+Image
+→ expo-image-picker
+
+Voice
+→ expo-audio
+
+Calendar
+→ expo-calendar
+```
+
+External runtime data is validated where appropriate using:
+
+```text
+Zod
+```
+
+The initial MVP does not include:
+
+```text
+Auth
+Cloud Reminder Card database
+Cross-device sync
+ORM
+Global state library
+```
+
+unless later evidence changes the decision.
+
+---
+
+# 54. Current North Star
 
 The current product North Star remains:
 
 > Does this make it easier for users to capture something they need to deal with later and trust that it will return at the right time?
 
-If a feature mainly makes WillDo a more complex task manager without improving this journey, it should not be added by default.
+A technical or product feature should not be added merely because it is common, powerful, or easy for an AI coding agent to generate.
+
+WillDo should optimise for the smallest reliable Future Action Capture experience.
